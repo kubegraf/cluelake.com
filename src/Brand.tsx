@@ -19,13 +19,13 @@ export function Brand() {
         The identity
       </h1>
       <p style={{ color: "var(--text-dim)", maxWidth: 660, fontSize: 16.5, margin: "0 0 14px" }}>
-        Three scattered signal nodes, each connected to one filled node. Signals
-        converging into evidence — the product in a single shape.
+        A low-poly origami bird, folded from flat facets in a single blue
+        gradient. Paper folded into a shape that carries something.
       </p>
       <p style={{ color: "var(--slate)", maxWidth: 660, fontSize: 14.5, margin: 0 }}>
-        The three nodes sit on an arc, so the silhouette reads as a soft C without
-        anyone drawing a letter. It is a monogram when you want one and a network
-        diagram when you do not.
+        The facets are separated by the paper's own white creases rather than by
+        outlines, so the mark holds its structure at a tile size and reads as one
+        silhouette below that.
       </p>
 
       <Section title="Primary logo" note="Symbol and wordmark, horizontal. The default in every interface.">
@@ -60,13 +60,13 @@ export function Brand() {
 
       <Section
         title="Monochrome and reversed"
-        note="One prop, not a second drawing: passing the same colour to the hub and the nodes gives every single-colour variant."
+        note="⚠ These are CSS filters over the artwork, not a separate drawing. Good enough for a stamp on a tile; NOT a substitute for a real single-colour vector. Commission one before embroidery, a one-colour print or a die-cut."
       >
         <Row>
-          <Tile bg="var(--graphite)"><Mark size={56} accent="var(--text)" muted="var(--text)" /></Tile>
-          <Tile bg="#ffffff"><Mark size={56} accent="#0a0d12" muted="#0a0d12" /></Tile>
-          <Tile bg="#0a0d12"><Mark size={56} accent="#ffffff" muted="#ffffff" /></Tile>
-          <Tile bg="var(--signal)"><Mark size={56} accent="var(--ink)" muted="var(--ink)" /></Tile>
+          <Tile bg="var(--graphite)"><Mark size={56} /></Tile>
+          <Tile bg="#ffffff"><Mark size={56} variant="mono" /></Tile>
+          <Tile bg="#0a0d12"><Mark size={56} variant="invert" /></Tile>
+          <Tile bg="var(--signal)"><Mark size={56} variant="mono" /></Tile>
         </Row>
       </Section>
 
@@ -176,9 +176,9 @@ export function Brand() {
       <Section title="What the mark is not" note="Each of these is what an observability company reaches for, and each is why they are all unownable.">
         <p style={{ color: "var(--text-dim)", fontSize: 14.5, maxWidth: 660, margin: 0, lineHeight: 1.7 }}>
           Not a magnifying glass. Not an eye. Not a radar sweep. Not a water
-          surface. Not a database cylinder. Not a helm wheel. Three dots and a hub
-          is a shape nobody in this category is already using — which is the only
-          property that makes a mark worth building a brand on.
+          surface. Not a database cylinder. Not a helm wheel. Nothing in this
+          category is using a folded bird, which is the only property that makes
+          a mark worth building a brand on.
         </p>
       </Section>
 

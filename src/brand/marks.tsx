@@ -1,148 +1,121 @@
+import symbolUrl from "../assets/logo-symbol.png";
+
 /**
  * The ClueLake mark.
  *
- * ── THE CONCEPT ─────────────────────────────────────────────────────────────
+ * ── THE ARTWORK IS THE SOURCE, AND IT IS RASTER ─────────────────────────────
  *
- * Three scattered signal nodes on the left, each connected to ONE filled node
- * on the right. Signals converging into evidence — which is the product in one
- * shape: logs, metrics and traces arriving separately and resolving into a
- * single explanation.
+ * A low-poly origami bird in a blue gradient, supplied as artwork. It replaced
+ * an SVG mark drawn earlier in this repo — that one was geometry we owned and
+ * could recolour at will, and this one is the brand, so the brand wins.
  *
- * The three left nodes sit on an arc, so the silhouette reads as a soft **C**
- * without anybody having to draw a letter. That is the whole trick: it is a
- * monogram when you want one and a network diagram when you do not.
+ * ⚠ WHAT THAT COSTS, STATED RATHER THAN DISCOVERED LATER. The previous mark was
+ * four circles and three lines with `accent` and `muted` as props, so a
+ * monochrome or reversed variant was one prop away. A PNG has no such handle:
+ * the variants below are CSS filters over fixed pixels. They are good enough for
+ * a stamp on a dark tile and they are NOT a substitute for a real single-colour
+ * drawing — if this needs embroidery, a one-colour print, or a die-cut sticker,
+ * commission a vector version rather than filtering this one.
  *
- * ── ⚠ WHAT IT DELIBERATELY IS NOT ───────────────────────────────────────────
+ * ── HOW IT WAS EXTRACTED ────────────────────────────────────────────────────
  *
- * Not a magnifying glass, not an eye, not a radar sweep, not a water surface,
- * not a database cylinder, not a Kubernetes helm. Every one of those was on the
- * brief's exclusion list and every one of them is what an observability company
- * reaches for — which is exactly why they are all unownable. Three dots and a
- * hub is a shape nobody in this category is using.
+ * Cropped from the primary-logo panel of the supplied brand sheet (the largest,
+ * cleanest instance), keyed off the near-white card, trimmed to the mark's true
+ * alpha bounds and padded square so every export is centred identically.
  *
- * ── WHY IT SURVIVES 16px ────────────────────────────────────────────────────
+ * The keying is the part worth knowing about: the mark's own facet SEAMS are
+ * white and run out to the silhouette edge, so they are continuous with the card
+ * behind it. No flood-fill can separate the two — it leaks straight down every
+ * seam. A morphological closing bridges the seams (a few pixels) while leaving
+ * the genuinely wide gaps between wing and body open, and one pixel of erosion
+ * removes the white fringe that is invisible on a white page and obvious on the
+ * dark one this actually sits on.
  *
- * Four circles and three straight lines. There is no detail to lose. The hub is
- * nearly twice the radius of the largest signal node, so even when the strokes
- * stop resolving the asymmetry still reads — which is what a favicon actually
- * needs: not legibility, but a distinctive blob.
- *
- * The geometry lives in ONE place (`NODES` / `HUB`) and every size, weight and
- * colour variant is drawn from it, so the favicon and the hero can never drift
- * apart the way a hand-exported set does.
+ * ⚠ IMPORTED, NOT REFERENCED BY PATH. `base` is "./" so the site can serve from
+ * both a domain root and a Pages subpath; an `/logo.png` string would bypass
+ * that and 404 on one of them. The import lets Vite fingerprint and rewrite it.
  */
-
-/** The three signal nodes, on a 32×32 grid. On an arc, opening right. */
-const NODES = [
-  { cx: 8.5, cy: 7.5, r: 2.1 },
-  { cx: 6.0, cy: 16.0, r: 2.6 },
-  { cx: 8.5, cy: 24.5, r: 2.1 },
-] as const;
-
-/** The evidence they converge on. Deliberately the largest thing in the mark. */
-const HUB = { cx: 23.5, cy: 16, r: 4.6 } as const;
 
 export interface MarkProps {
   size?: number;
-  /** The hub and the paths. Defaults to the signal colour. */
-  accent?: string;
-  /** The scattered nodes and the connecting lines. */
-  muted?: string;
   title?: string;
   className?: string;
+  /**
+   * `mono` renders it as a single-tone silhouette for a one-colour context;
+   * `invert` flips it light for a dark stamp. Both are CSS filters over the
+   * artwork — see the header for why that is a compromise and not a system.
+   */
+  variant?: "full" | "mono" | "invert";
 }
 
-/**
- * The symbol on its own — no container, no background.
- *
- * ⚠ `muted` AND `accent` ARE SEPARATE SO MONOCHROME IS ONE PROP AWAY. Passing
- * the same value to both gives the single-colour version the brief asks for
- * (black, white, reversed) with no second drawing to keep in step.
- */
-export function Mark({
-  size = 32,
-  accent = "var(--signal)",
-  muted = "currentColor",
-  title,
-  className,
-}: MarkProps) {
+const FILTER: Record<NonNullable<MarkProps["variant"]>, string | undefined> = {
+  full: undefined,
+  mono: "grayscale(1) contrast(1.15) brightness(0.75)",
+  invert: "grayscale(1) brightness(0) invert(1)",
+};
+
+export function Mark({ size = 32, title, className, variant = "full" }: MarkProps) {
   return (
-    <svg
+    <img
+      src={symbolUrl}
       width={size}
       height={size}
-      viewBox="0 0 32 32"
-      fill="none"
-      className={className}
-      role={title ? "img" : "presentation"}
-      aria-label={title}
+      alt={title ?? ""}
       aria-hidden={title ? undefined : true}
-    >
-      {/* The paths first, so the nodes sit on top of them and the joins stay
-          clean at every stroke width. */}
-      <g stroke={muted} strokeWidth="1.6" strokeLinecap="round" opacity="0.55">
-        {NODES.map((n, i) => (
-          <line key={i} x1={n.cx} y1={n.cy} x2={HUB.cx} y2={HUB.cy} />
-        ))}
-      </g>
-      <g fill={muted}>
-        {NODES.map((n, i) => (
-          <circle key={i} cx={n.cx} cy={n.cy} r={n.r} />
-        ))}
-      </g>
-      {/* ⚠ NO KNOCKOUT RING BEHIND THE HUB, and there used to be one.
-          It filled a slightly larger circle with the PAGE background so the hub
-          would read as a distinct object where a path passed behind it — except
-          no path does: all three terminate at the hub's centre and are covered
-          by it. So the ring solved nothing and hardcoded `--ink`, which meant
-          that the moment the mark sat on any surface that was not the page
-          background — a white tile, a coloured tile, a sticker — it drew a dark
-          halo around the hub. Removing it makes the mark genuinely
-          background-independent, which is the whole requirement for a logo. */}
-      <circle cx={HUB.cx} cy={HUB.cy} r={HUB.r} fill={accent} />
-    </svg>
+      className={className}
+      style={{
+        display: "block",
+        // The export is square with the bird centred, so `contain` keeps the
+        // proportions at any box size without a second cropped asset.
+        objectFit: "contain",
+        filter: FILTER[variant],
+      }}
+      // The mark is decorative beside the wordmark and load-bearing in the
+      // header; either way it is above the fold and should not be deferred.
+      loading="eager"
+      decoding="async"
+    />
   );
 }
 
 /**
- * The app/favicon tile: the mark inside a rounded square.
+ * The app/favicon tile: the mark on the brand ground, in a rounded square.
  *
- * ⚠ THE SYMBOL IS SCALED UP INSIDE THE TILE, not dropped in at its drawing
- * size. A mark that keeps its clear-space inside a 512px icon looks timid on a
- * phone home screen, and at 16px it disappears into the corner radius.
+ * ⚠ SCALED UP INSIDE THE TILE rather than dropped in at its drawing size. A mark
+ * that keeps its clear space inside a 512px icon looks timid on a home screen,
+ * and at 16px it disappears into the corner radius.
  */
 export function AppIcon({ size = 64, radius = 0.22 }: { size?: number; radius?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" role="img" aria-label="ClueLake">
-      <rect width="32" height="32" rx={32 * radius} fill="var(--ink)" />
-      <g transform="translate(16 16) scale(0.76) translate(-16 -16)">
-        <g stroke="var(--slate)" strokeWidth="1.6" strokeLinecap="round" opacity="0.6">
-          {NODES.map((n, i) => (
-            <line key={i} x1={n.cx} y1={n.cy} x2={HUB.cx} y2={HUB.cy} />
-          ))}
-        </g>
-        <g fill="var(--slate)">
-          {NODES.map((n, i) => (
-            <circle key={i} cx={n.cx} cy={n.cy} r={n.r} />
-          ))}
-        </g>
-        <circle cx={HUB.cx} cy={HUB.cy} r={HUB.r} fill="var(--signal)" />
-      </g>
-    </svg>
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: size,
+        height: size,
+        borderRadius: size * radius,
+        background: "var(--ink)",
+        border: "1px solid var(--hairline)",
+      }}
+    >
+      <Mark size={size * 0.72} />
+    </span>
   );
 }
 
 /**
  * The wordmark.
  *
- * ⚠ SET IN THE UI FACE, NOT DRAWN AS PATHS, and that is a deliberate trade. A
- * real brand ships outlined letterforms so the rendering cannot vary; a landing
- * page that does the same ships a blurry raster on a high-DPI screen unless the
- * SVG is perfect. Live text stays crisp everywhere, is selectable, and is read
- * by search engines — and the tuning that makes it a wordmark rather than a
- * heading is in the tracking and the weight split, which survive as CSS.
+ * ⚠ `Clue` IS THE HEAVY HALF. It is the other way round in the supplied artwork
+ * from how this file first had it — Clue is set solid and Lake lighter, so the
+ * compound reads as two words with no space, capital or colour doing the work.
+ * Matching the artwork matters more than the earlier guess did.
  *
- * `Clue` is the lighter half and `Lake` the heavier one, so the compound reads
- * as two words without a space, a capital, or a colour change doing the work.
+ * Set in the UI face rather than drawn as paths: live text stays crisp at every
+ * size and on every DPI, is selectable, and is read by search engines. What
+ * makes it a wordmark rather than a heading is the tracking and the weight
+ * split, and both survive as CSS.
  */
 export function Wordmark({ size = 20, className }: { size?: number; className?: string }) {
   return (
@@ -150,15 +123,15 @@ export function Wordmark({ size = 20, className }: { size?: number; className?: 
       className={className}
       style={{
         fontSize: size,
-        fontWeight: 500,
-        letterSpacing: "-0.021em",
+        fontWeight: 400,
+        letterSpacing: "-0.022em",
         lineHeight: 1,
         color: "var(--text)",
         whiteSpace: "nowrap",
-        fontFeatureSettings: '"ss01" 1, "cv05" 1',
       }}
     >
-      Clue<span style={{ fontWeight: 680 }}>Lake</span>
+      <span style={{ fontWeight: 680 }}>Clue</span>
+      <span style={{ color: "var(--text-dim)" }}>Lake</span>
     </span>
   );
 }
@@ -166,19 +139,19 @@ export function Wordmark({ size = 20, className }: { size?: number; className?: 
 /** Symbol + wordmark, side by side. The header lockup. */
 export function LockupHorizontal({ size = 22 }: { size?: number }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: size * 0.42 }}>
-      <Mark size={size * 1.35} title="ClueLake" />
+    <span style={{ display: "inline-flex", alignItems: "center", gap: size * 0.4 }}>
+      <Mark size={size * 1.5} title="ClueLake" />
       <Wordmark size={size} />
     </span>
   );
 }
 
-/** Symbol over wordmark. For square spaces — a README, a sticker, an app store. */
+/** Symbol over wordmark. For square spaces — a README, a sticker, a store listing. */
 export function LockupStacked({ size = 56 }: { size?: number }) {
   return (
-    <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: size * 0.26 }}>
+    <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: size * 0.22 }}>
       <Mark size={size} title="ClueLake" />
-      <Wordmark size={size * 0.42} />
+      <Wordmark size={size * 0.4} />
     </span>
   );
 }
