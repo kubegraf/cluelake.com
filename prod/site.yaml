@@ -4,22 +4,22 @@
 # The ClueLake marketing site: a Next.js server, built into one image with its
 # content. Listens on 3000 as a non-root user with a read-only root filesystem.
 #
-# ⚠ THIS IS WHAT CI APPLIES. Routing (prod/routes.yaml) and TLS
-# (prod/certificate.yaml) are applied by a cluster admin and CI cannot touch
-# them. routes.yaml explains why at length, and the reason is not tidiness.
+# ⚠ THIS IS WHAT CI APPLIES, AND THE NAMESPACE IS NOT IN IT ANY MORE.
+#
+# A Namespace is a CLUSTER-SCOPED resource, and the deploy role is scoped to one
+# namespace — so `kubectl apply` on it failed with:
+#
+#   namespaces is forbidden: User ".../github-actions-cluelake-site/..." cannot
+#   create resource "namespaces" in API group "" at the cluster scope
+#
+# That is the access model working, not a bug to widen. Granting cluster-scoped
+# write to a marketing site's CI to save one manual step is the wrong trade, and
+# `apply` would still fail on an EXISTING namespace because it reads before it
+# writes. The namespace is prod/namespace.yaml, applied once by an admin.
+#
+# Routing (prod/routes.yaml) and TLS (prod/certificate.yaml) are also a cluster
+# admin's, for the reason routes.yaml sets out at length.
 # ============================================================================
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: cluelake-site
-  labels:
-    # ⚠ WITHOUT THIS LABEL THE ROUTE IS SILENTLY IGNORED. The gateway's
-    # listeners admit routes only from namespaces carrying it
-    # (allowedRoutes.namespaces.from: Selector). The HTTPRoute is accepted by
-    # the API server either way, so the failure is a 404 with nothing in any log.
-    gateway-access: istio
-    app.kubernetes.io/part-of: cluelake
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -39,6 +39,9 @@ can no longer host it. The Pages workflow and `public/CNAME` have been removed.
 **Until the container is deployed, cluelake.com continues to serve the last Pages
 build.** The cutover order matters and reversing it takes the site down:
 
+0. an admin applies `prod/namespace.yaml` once — CI cannot create a
+   cluster-scoped object, and that is the access model working rather than a
+   gap to widen
 1. `deploy-cluster.yml` builds the image and rolls it out on kubegraf-prod
 2. a cluster admin applies `prod/certificate.yaml`, then the gateway listeners,
    then `prod/routes.yaml` (CI deliberately cannot — see that file)

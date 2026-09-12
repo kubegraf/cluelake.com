@@ -1,0 +1,27 @@
+# The cluelake-site namespace. A CLUSTER ADMIN applies this ONCE; CI cannot.
+#
+# ⚠ IT IS SEPARATE FROM site.yaml BECAUSE A NAMESPACE IS CLUSTER-SCOPED. The
+# deploy role holds admin inside `cluelake-site` and nothing at cluster scope, so
+# an apply that includes this object fails the whole file — which is how the
+# first deploy failed, before the namespace existed:
+#
+#   namespaces is forbidden: ... cannot create resource "namespaces" ... at the
+#   cluster scope
+#
+# The fix is not to widen the role. A namespace is created once in the lifetime
+# of the service; CI runs on every merge.
+#
+# ⚠ THE LABEL IS LOAD-BEARING. `kubegraf-gateway` admits HTTPRoutes only from
+# namespaces carrying `gateway-access: istio`
+# (allowedRoutes.namespaces.from: Selector). Without it the route is accepted by
+# the API server and then silently ignored by the gateway — a 404 with nothing
+# in any log.
+#
+#   kubectl --context <kubegraf-prod> apply -f prod/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cluelake-site
+  labels:
+    gateway-access: istio
+    app.kubernetes.io/part-of: cluelake
