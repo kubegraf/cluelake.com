@@ -1,54 +1,61 @@
 # syntax=docker/dockerfile:1.7
 # -----------------------------------------------------------------------------
-# cluelake.com — the ClueLake marketing site.
+# cluelake.com — the ClueLake website.
 #
-# Mirrors kubegraf/domineta-site: the config, the pages and their .gz twins are
-# ONE artifact, the Deployment pins its DIGEST, and nothing can change under a
-# running pod without producing a new digest and therefore a new rollout.
+# Next.js in `standalone` output: the build traces exactly the node_modules it
+# needs into .next/standalone, so the runtime stage carries a server and its
+# real dependencies rather than the whole install.
 #
-#   deps    npm ci, cached on the lockfile alone so a source edit does not
-#           reinstall the tree
-#   build   vite build -> dist/, then gzip -9 a .gz beside every asset
-#   run     nginx-unprivileged, non-root, read-only root filesystem
+#   deps   npm ci, cached on the lockfile alone
+#   build  next build
+#   run    node, non-root, minimal
 # -----------------------------------------------------------------------------
 
-# ⚠ PIN BY DIGEST, NOT BY TAG. `node:22-alpine` is a moving target: the same
+# ⚠ PINNED BY DIGEST, NOT TAG. `node:22-alpine` is a moving target: the same
 # Dockerfile builds a different base on a different day, which is the whole
-# class of "it worked yesterday" this repo can do without.
+# class of "it worked yesterday" this can do without.
 FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS deps
 WORKDIR /src
 COPY package.json package-lock.json ./
 # `npm ci`, not `install`: the lockfile is the input. A build that quietly
-# resolves a different tree is a build that ships something nobody reviewed.
+# resolves a different tree ships something nobody reviewed.
 RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --fund=false
 
-FROM deps AS build
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS build
 WORKDIR /src
-COPY tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts index.html ./
-COPY public ./public
-COPY src ./src
-RUN npx tsc -b && npx vite build
+COPY --from=deps /src/node_modules ./node_modules
+COPY . .
+# ⚠ THE PUBLIC SITE URL IS BAKED IN AT BUILD TIME, because canonical tags and
+# the sitemap are generated during `next build`. An image built without it has
+# the fallback hostname in its metadata, which is wrong on staging and invisible
+# until somebody checks a canonical tag.
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
 
-# ⚠ gzip -k -9, AND IT ONLY PAYS BECAUSE IT RUNS ONCE. nginx's per-request gzip
-# is level 6; doing it here costs build time nobody waits on and saves bytes on
-# every request forever. `-k` keeps the original, which nginx still needs for
-# clients that send no Accept-Encoding.
-RUN find dist -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.svg' \) \
-      -exec gzip -k -9 {} \;
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS run
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-# ⚠ UNPRIVILEGED, AND NOT THE SAME IMAGE AS `nginx`. This one runs as uid 101,
-# listens on 8080 and writes its temp files under /tmp — which is what lets the
-# pod run with runAsNonRoot and a read-only root filesystem.
-FROM nginxinc/nginx-unprivileged:1.29-alpine@sha256:0c79d56aee561a1d81c63f00eee5fb5fe29279560cdc55e91425133104c7fbe6 AS run
+# ⚠ NON-ROOT, AND THE FILES ARE NOT OWNED BY IT. The app writes nothing at
+# runtime, so everything is owned by root and merely readable — a web root the
+# server process can rewrite is how a compromised process persists.
+RUN addgroup -g 10001 -S app && adduser -u 10001 -S app -G app
 
-# Nothing is written at runtime, so everything is owned by root and read by
-# nginx. A world-writable web root is how a compromised worker rewrites a page.
-COPY --chown=root:root --chmod=444 deploy/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build --chown=root:root /src/dist /usr/share/nginx/html
+COPY --from=build --chown=root:root /src/.next/standalone ./
+COPY --from=build --chown=root:root /src/.next/static ./.next/static
+COPY --from=build --chown=root:root /src/public ./public
 
-EXPOSE 8080
+USER 10001:10001
+EXPOSE 3000
 
-# The same path the Deployment's probes use, so a failing container fails the
-# same way under `docker run` as it does in the cluster.
-HEALTHCHECK --interval=30s --timeout=3s --start-period=2s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1
+# Hits the real app rather than a bare TCP check, so a server that is listening
+# but failing to render is unhealthy rather than green.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+CMD ["node", "server.js"]

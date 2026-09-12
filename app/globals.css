@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/**
+ * ClueLake — the design system.
+ *
+ * ⚠ THE PALETTE IS SAMPLED FROM THE LOGO, NOT INVENTED BESIDE IT. The supplied
+ * mark is a blue gradient; its facets measure #0a547b at the darkest through
+ * #2a7e9a mid to #4697ac light. The accent below is that same hue family,
+ * lifted enough to pass contrast on a near-black ground. An accent from any
+ * other hue would put the brand in permanent argument with its own logo.
+ */
+
+@theme {
+  /* ── Ground ─────────────────────────────────────────────────────────── */
+  --color-ink: #080b0f;
+  --color-surface: #0d1117;
+  --color-surface-2: #121921;
+  --color-line: #1d2630;
+  --color-line-strong: #2a3644;
+
+  /* ── Type ───────────────────────────────────────────────────────────── */
+  --color-fg: #e8edf3;
+  --color-fg-muted: #9aa7b6;
+  --color-fg-subtle: #6b7888;
+
+  /* ── Accent, from the mark ──────────────────────────────────────────── */
+  --color-accent: #4fb3d1;
+  --color-accent-hover: #6ec8e2;
+  --color-accent-deep: #0a547b;
+  --color-accent-wash: rgba(79, 179, 209, 0.12);
+  --color-accent-line: rgba(79, 179, 209, 0.32);
+
+  /* ── Status. Restrained: on a page about evidence, a saturated red is an
+        opinion the data has not earned. ─────────────────────────────────── */
+  --color-ok: #4ec98a;
+  --color-warn: #e0a33f;
+  --color-bad: #e4696e;
+  --color-info: #7c9fe0;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-mono-jb), ui-monospace, SFMono-Regular, "SF Mono",
+    Menlo, Consolas, monospace;
+}
+
+:root { color-scheme: dark; }
+
+/* ── Light theme ───────────────────────────────────────────────────────────
+   Chosen explicitly by the reader, never inferred from the OS: this is a brand
+   surface with a deliberate default, and a visitor whose laptop is in light
+   mode has not asked for a different brand.
+   ⚠ The accent CANNOT be shared. #4fb3d1 on white is ~1.9:1 and unreadable, so
+   light uses the logo's own deep facet. A brand colour that cannot be read is
+   one that gets quietly replaced by whoever needs it to work. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-ink: #fbfcfd;
+  --color-surface: #ffffff;
+  --color-surface-2: #f3f6f9;
+  --color-line: #e2e8ef;
+  --color-line-strong: #cbd5e0;
+  --color-fg: #0b1017;
+  --color-fg-muted: #4a5565;
+  --color-fg-subtle: #6b7888;
+  --color-accent: #0a5b82;
+  --color-accent-hover: #084963;
+  --color-accent-wash: rgba(10, 91, 130, 0.08);
+  --color-accent-line: rgba(10, 91, 130, 0.28);
+  --color-ok: #197a4e;
+  --color-warn: #8a5d0c;
+  --color-bad: #b03b40;
+  --color-info: #3457a8;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ⚠ Headings do not inherit the body's 1.6. Display type set at prose leading
+   reads as separate lines rather than one phrase. */
+h1, h2, h3, h4 { line-height: 1.14; text-wrap: balance; margin: 0; }
+p { text-wrap: pretty; }
+
+::selection { background: var(--color-accent-wash); color: var(--color-fg); }
+
+/* A visible, consistent focus ring everywhere. Keyboard users must never have
+   to guess where they are. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ⚠ EVERY ANIMATION IS OPT-OUT. Motion here is used to show causality — a
+   deployment marker landing before a latency line moves — and somebody who has
+   asked for less motion still needs the information, so the reduced-motion
+   rule removes the movement and never the content. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The faint technical grid behind hero-type sections. Drawn in CSS so it costs
+   no image, scales to any viewport, and can be masked without touching content.
+   ⚠ It is a pseudo-element: `mask-image` masks an element's CONTENT as well as
+   its background, so putting the mask on the section itself dissolves the text. */
+.grid-field { position: relative; isolation: isolate; }
+.grid-field > * { position: relative; z-index: 1; }
+.grid-field::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.55;
+  -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 30%, #000 25%, transparent 75%);
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 30%, #000 25%, transparent 75%);
+}
+
+@keyframes cl-draw { from { stroke-dashoffset: var(--dash, 1000); } to { stroke-dashoffset: 0; } }
+@keyframes cl-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes cl-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }

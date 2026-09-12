@@ -1,52 +1,101 @@
 # cluelake.com
 
-The marketing site for **ClueLake** — a standalone Kubernetes observability
-platform, and a product of Orkastor Ltd.
+The ClueLake website. Next.js 15 (App Router), TypeScript, Tailwind CSS 4.
 
-Static build (Vite + React + Tailwind), served by **GitHub Pages** from this
-repository. Brand system lives at [`/#/brand`](https://cluelake.com/#/brand) and
-is rendered from the same components the site header uses, so it cannot drift
-from the real mark.
+ClueLake is a Kubernetes observability platform, and a product of Orkastor Ltd.
 
-## Local
+## Run it
 
-```
+```bash
 npm install
-npm run dev       # http://localhost:5173
-npm run build     # -> dist/
+cp .env.example .env.local
+npm run dev            # http://localhost:3000
 ```
 
-## ⚠ Two things that break the site silently
+```bash
+npm run lint           # eslint
+npm run typecheck      # tsc --noEmit
+npm run build          # production build
+npm start              # serve the build
+```
 
-**`public/CNAME` is the custom-domain setting.** GitHub Pages reads it on every
-build. A deploy without it reverts the site to `kubegraf.github.io/cluelake.com`
-and the domain stops serving.
+## Docker
 
-**`base` in `vite.config.ts` is `"./"`, and it should stay that way.** It used
-to be absolute, which is right for exactly one of the two URLs this site is
-reachable at and wrong for the other — so the window between "built for the
-domain" and "the domain resolves" served a 200 with a 404 on every asset: a
-blank screen, not an error. Relative works at both. It only holds while routing
-stays hash-based (`/#/brand`); real nested server paths would break it.
+```bash
+docker build --build-arg NEXT_PUBLIC_SITE_URL=https://cluelake.com -t cluelake-web .
+docker run --rm -p 3000:3000 cluelake-web
+```
 
-## ⚠ This repo is public, so CI uses `ubuntu-latest`
+Multi-stage, Next.js `standalone` output, non-root (uid 10001), read-only-friendly,
+health check on `/health`. Deployable to Vercel, any container platform, or behind
+CloudFront / ALB / nginx — no provider assumptions in the code.
 
-Every other workflow in this org uses `runs-on: kubegraf-org-runners`. That
-label **silently never runs** in a public repository: the Default runner group
-is `allows_public_repositories: false`, so the job sits queued until somebody
-cancels it, with nothing in the log to read.
+## ⚠ Hosting changed: this is a server, not a static export
 
-This repo has to be public for GitHub Pages to serve it. The reasons behind the
-self-hosted policy — secrets, VPC egress, cluster access — do not apply here: it
-builds a static page from public source. `agentenx.com` is the other repo in the
-same position and carries the same note. If any of that stops being true, this
-needs revisiting rather than extending.
+The site used to be a Vite build on GitHub Pages. It is now a Next.js app with a
+server route (`/api/contact`), so **it cannot be statically exported** and Pages
+can no longer host it. The Pages workflow and `public/CNAME` have been removed.
 
-## DNS
+**Until the container is deployed, cluelake.com continues to serve the last Pages
+build.** The cutover order matters and reversing it takes the site down:
 
-Records are Terraform, in `kubegraf-infra` at
-`terraform/aws/shared/cloudflare-dns/cloudflare_cluelake_dns.tf`. Four apex A
-records to GitHub Pages' anycast set, plus `www` as a CNAME. Every record is
-grey-cloud (unproxied) on purpose: Pages issues and renews the TLS certificate
-itself via an HTTP-01 challenge, and proxying breaks that in a way that surfaces
-months later as an expired certificate.
+1. `deploy-cluster.yml` builds the image and rolls it out on kubegraf-prod
+2. a cluster admin applies `prod/certificate.yaml`, then the gateway listeners,
+   then `prod/routes.yaml` (CI deliberately cannot — see that file)
+3. DNS moves from the GitHub Pages addresses to the gateway
+
+## Brand
+
+⚠ **The logo is supplied artwork and is never redrawn, recoloured, or placed in a
+container.** `public/brand/cluelake-symbol.png` is the mark already live on
+cluelake.com. `components/brand/Logo.tsx` renders it at every size from that one
+file; the wordmark beside it is live text (`Clue` solid, `Lake` lighter), matching
+the supplied artwork.
+
+The palette is **sampled from the mark** — its facets measure `#0a547b` through
+`#2a7e9a` to `#4697ac` — so the accent is the same hue family rather than a
+colour system competing with the logo. Light theme uses a deeper value because
+the dark accent fails contrast on white.
+
+## Layout
+
+```
+app/                    routes, metadata, sitemap, robots, API
+components/brand/       the supplied logo
+components/layout/      header (with mobile drawer), footer, page header
+components/ui/          button, section, chip, code block
+components/product/     the interactive product interfaces
+components/sections/    composable page sections
+lib/config/             site config — no hostname is hardcoded in a component
+lib/demo/               ⚠ demonstration data for the site. NOT product data.
+lib/contact/            validation (shared) and delivery (server-only)
+lib/seo/ lib/analytics/ metadata helper, vendor-agnostic analytics
+prod/                   Kubernetes manifests
+```
+
+## ⚠ Demo data is isolated and never fetched
+
+Every product interface on this site is driven by `lib/demo/data.ts` — one fixed
+scenario, so the same incident runs through every section. **There is no mock API
+and no fake endpoint.** The components take data as props and would render live
+telemetry unchanged.
+
+## Environment
+
+Only `NEXT_PUBLIC_*` variables reach the browser. Everything else is server-only.
+
+| Variable | Required | Notes |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | yes | Canonical URLs, OpenGraph, sitemap. Baked in at build time. |
+| `NEXT_PUBLIC_ANALYTICS` | no | `plausible` \| `posthog` \| `ga4`. Unset loads no script at all. |
+| `CONTACT_PROVIDER` | no | Unset means the form **refuses** submissions rather than dropping them silently. |
+| `CONTACT_TO` / `CONTACT_FROM` | with provider | |
+| `RESEND_API_KEY` | with resend | Server-only. Never `NEXT_PUBLIC_`. |
+
+## What this site deliberately does not contain
+
+No customer logos, testimonials, benchmarks, funding, awards or certifications —
+because none of those exist yet, and a careful evaluator checks. The security
+page states plainly that there is no SOC 2 or ISO 27001 attestation. The
+changelog is an empty state rather than invented release history. Legal pages say
+the documents are not published yet instead of generating plausible clauses.
