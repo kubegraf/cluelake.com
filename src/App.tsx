@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { LockupHorizontal, Mark } from "./brand/marks";
-import { Brand } from "./Brand";
 
 /**
  * cluelake.com
@@ -24,29 +23,25 @@ const NAV = [
   { href: "#what", label: "What it does" },
   { href: "#signals", label: "Signals" },
   { href: "#capabilities", label: "Capabilities" },
-  { href: "#/brand", label: "Brand" },
 ];
 
 export default function App() {
-  const [route, setRoute] = useState(() => window.location.hash);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
-
-  useEffect(() => {
-    const onHash = () => setRoute(window.location.hash);
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  const onBrand = route.startsWith("#/brand");
-
+  /* ⚠ NO CLIENT ROUTER. The site is one page with in-page anchors, and the
+     hash-routed /#/brand page it used to carry is gone — brand guidelines are
+     internal documentation, not a product surface, and shipping them in the
+     public nav made the site read as a design exercise rather than as a
+     product. If a second real page is ever added, add a router then; a router
+     for one page is machinery with nothing to do. */
   return (
     <>
       <Header theme={theme} onTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))} />
-      <main>{onBrand ? <Brand /> : <Landing />}</main>
+      <main><Landing /></main>
       <Footer />
     </>
   );
@@ -112,7 +107,7 @@ function Footer() {
           </p>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", gap: 48, flexWrap: "wrap" }}>
-          <FooterCol title="Product" links={[["What it does", "#what"], ["Capabilities", "#capabilities"], ["Brand", "#/brand"]]} />
+          <FooterCol title="Product" links={[["What it does", "#what"], ["Signals", "#signals"], ["Capabilities", "#capabilities"]]} />
           <FooterCol title="Company" links={[["Orkastor", "https://orkastor.com"], ["KubeGraf", "https://kubegraf.io"], ["Domineta", "https://domineta.com"]]} />
         </div>
       </Shell>
