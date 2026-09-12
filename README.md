@@ -22,10 +22,12 @@ npm run build     # -> dist/
 build. A deploy without it reverts the site to `kubegraf.github.io/cluelake.com`
 and the domain stops serving.
 
-**`base` in `vite.config.ts` is pinned to `public/CNAME`.** It is `/` because the
-site serves from a domain root. If the custom domain is ever removed, `base` has
-to go back to `/cluelake.com/` in the same change — getting this wrong does not
-fail the build, it ships a page with no CSS and no JavaScript.
+**`base` in `vite.config.ts` is `"./"`, and it should stay that way.** It used
+to be absolute, which is right for exactly one of the two URLs this site is
+reachable at and wrong for the other — so the window between "built for the
+domain" and "the domain resolves" served a 200 with a 404 on every asset: a
+blank screen, not an error. Relative works at both. It only holds while routing
+stays hash-based (`/#/brand`); real nested server paths would break it.
 
 ## ⚠ This repo is public, so CI uses `ubuntu-latest`
 
