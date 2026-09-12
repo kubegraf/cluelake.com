@@ -92,6 +92,7 @@ jobs:
           TAG="sha-$(git rev-parse --short HEAD)"
           docker buildx build \
             --platform linux/amd64 \
+            --build-arg NEXT_PUBLIC_SITE_URL="https://cluelake.com" \
             --tag "${REGISTRY}/${ECR_REPO}:${TAG}" \
             --push \
             --provenance=false \
@@ -135,7 +136,7 @@ jobs:
           set -euo pipefail
           kubectl -n "${NS}" run curl-check --rm -i --restart=Never \
             --image=curlimages/curl:8.10.1 --quiet -- \
-            -fsS -o /dev/null -w '%{http_code}\n' http://cluelake-site.${NS}.svc.cluster.local/healthz
+            -fsS -o /dev/null -w '%{http_code}\n' http://cluelake-site.${NS}.svc.cluster.local/health
 
       - name: Prune the registry
         # ⚠ THIS DELETES PRODUCTION IMAGES, SO READ THE ORDER. It runs LAST —

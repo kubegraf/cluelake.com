@@ -1,9 +1,8 @@
 # ============================================================================
 # cluelake.com on kubegraf-prod.
 #
-# The ClueLake marketing site: nginx-unprivileged serving a static build, with
-# the content and the nginx config baked into one image. Mirrors
-# kubegraf/domineta-site — read prod/site.yaml there for the shape.
+# The ClueLake marketing site: a Next.js server, built into one image with its
+# content. Listens on 3000 as a non-root user with a read-only root filesystem.
 #
 # ⚠ THIS IS WHAT CI APPLIES. Routing (prod/routes.yaml) and TLS
 # (prod/certificate.yaml) are applied by a cluster admin and CI cannot touch
@@ -54,7 +53,7 @@ spec:
           image: ${IMAGE}
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 3000
               name: http
           securityContext:
             allowPrivilegeEscalation: false
@@ -63,28 +62,29 @@ spec:
           resources:
             # Small and equal: a static file server should never be the reason a
             # node is under memory pressure.
-            requests: { cpu: 10m, memory: 32Mi }
-            limits: { cpu: 200m, memory: 64Mi }
+            # ⚠ RAISED FROM THE NGINX FIGURES. A Node process with the Next.js
+            # server in it does not fit in 64Mi; the old limits would OOMKill it
+            # on the first request and look like a crash loop.
+            requests: { cpu: 50m, memory: 192Mi }
+            limits: { cpu: 500m, memory: 512Mi }
           volumeMounts:
-            # The content and the config are in the image. What remains is the
-            # two paths nginx writes to, which must be writable even though the
-            # root filesystem is not: temp bodies in one, its pid in the other.
-            - { name: cache, mountPath: /var/cache/nginx }
-            - { name: run, mountPath: /tmp }
+            # ⚠ ONLY /tmp. The nginx cache mount is gone with nginx; a Node
+            # server writes nothing else, and the root filesystem stays
+            # read-only.
+            - { name: tmp, mountPath: /tmp }
           readinessProbe:
             # ⚠ /healthz, NOT /. A probe that fetches the page goes green
             # whenever nginx can serve bytes, which it can before the assets are
             # in place.
-            httpGet: { path: /healthz, port: 8080 }
-            initialDelaySeconds: 2
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 3
             periodSeconds: 10
           livenessProbe:
-            httpGet: { path: /healthz, port: 8080 }
-            initialDelaySeconds: 5
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 8
             periodSeconds: 20
       volumes:
-        - { name: cache, emptyDir: {} }
-        - { name: run, emptyDir: {} }
+        - { name: tmp, emptyDir: {} }
 ---
 apiVersion: v1
 kind: Service
@@ -95,7 +95,7 @@ spec:
   selector:
     app.kubernetes.io/name: cluelake-site
   ports:
-    - { name: http, port: 80, targetPort: 8080 }
+    - { name: http, port: 80, targetPort: 3000 }
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget

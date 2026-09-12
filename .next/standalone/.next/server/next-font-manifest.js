@@ -1,0 +1,1 @@
+self.__NEXT_FONT_MANIFEST='{"pages":{},"app":{"/private/tmp/claude-501/-Users-puvendhan-Documents-repos-new/c023d9a8-b6b9-45a7-bf0d-b4e13cac8954/scratchpad/cluelake.com/app/layout":["static/media/e4af272ccee01ff0-s.p.woff2","static/media/bb3ef058b751a6ad-s.p.woff2"]},"appUsingSizeAdjust":true,"pagesUsingSizeAdjust":false}';

@@ -1,0 +1,7 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /login
+Disallow: /get-started
+
+Sitemap: https://cluelake.com/sitemap.xml
