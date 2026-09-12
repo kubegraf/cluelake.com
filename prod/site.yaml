@@ -1,0 +1,111 @@
+# ============================================================================
+# cluelake.com on kubegraf-prod.
+#
+# The ClueLake marketing site: nginx-unprivileged serving a static build, with
+# the content and the nginx config baked into one image. Mirrors
+# kubegraf/domineta-site — read prod/site.yaml there for the shape.
+#
+# ⚠ THIS IS WHAT CI APPLIES. Routing (prod/routes.yaml) and TLS
+# (prod/certificate.yaml) are applied by a cluster admin and CI cannot touch
+# them. routes.yaml explains why at length, and the reason is not tidiness.
+# ============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cluelake-site
+  labels:
+    # ⚠ WITHOUT THIS LABEL THE ROUTE IS SILENTLY IGNORED. The gateway's
+    # listeners admit routes only from namespaces carrying it
+    # (allowedRoutes.namespaces.from: Selector). The HTTPRoute is accepted by
+    # the API server either way, so the failure is a 404 with nothing in any log.
+    gateway-access: istio
+    app.kubernetes.io/part-of: cluelake
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cluelake-site
+  namespace: cluelake-site
+  labels:
+    app.kubernetes.io/name: cluelake-site
+spec:
+  replicas: 2 # two, so a node roll does not take the page down
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cluelake-site
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cluelake-site
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: nginx
+          # ⚠ SUBSTITUTED AT DEPLOY TIME, AND BY DIGEST. The workflow replaces
+          # ${IMAGE} with the digest of the image it just built and pushed, so
+          # the running spec names one exact artifact that cannot be retagged
+          # under it. A tag is a promise; a digest is the thing.
+          #
+          # A placeholder in git rather than a committed digest, because the
+          # alternative is CI pushing to main after every deploy — a bot commit
+          # on a protected branch is a bigger door than this needs.
+          image: ${IMAGE}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            # Small and equal: a static file server should never be the reason a
+            # node is under memory pressure.
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { cpu: 200m, memory: 64Mi }
+          volumeMounts:
+            # The content and the config are in the image. What remains is the
+            # two paths nginx writes to, which must be writable even though the
+            # root filesystem is not: temp bodies in one, its pid in the other.
+            - { name: cache, mountPath: /var/cache/nginx }
+            - { name: run, mountPath: /tmp }
+          readinessProbe:
+            # ⚠ /healthz, NOT /. A probe that fetches the page goes green
+            # whenever nginx can serve bytes, which it can before the assets are
+            # in place.
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 5
+            periodSeconds: 20
+      volumes:
+        - { name: cache, emptyDir: {} }
+        - { name: run, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cluelake-site
+  namespace: cluelake-site
+spec:
+  selector:
+    app.kubernetes.io/name: cluelake-site
+  ports:
+    - { name: http, port: 80, targetPort: 8080 }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cluelake-site
+  namespace: cluelake-site
+spec:
+  # One pod must stay up through a voluntary disruption. With replicas: 2 this
+  # makes a node drain roll the pods rather than take both at once.
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cluelake-site

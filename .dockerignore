@@ -1,0 +1,8 @@
+# The build context is uploaded to the daemon even when the Dockerfile only
+# COPYs named paths, so excluding these is a build-speed fix, not a correctness
+# one — node_modules alone is ~200 MB of files the image never uses.
+node_modules
+dist
+.git
+.github
+*.log

@@ -1,0 +1,77 @@
+# -----------------------------------------------------------------------------
+# The HTTPRoutes for cluelake.com. A CLUSTER ADMIN applies this file, and CI
+# deliberately cannot.
+#
+# ⚠ THE GATEWAY LISTENERS ARE A PREREQUISITE AND ARE NOT IN THIS REPO. The
+# sectionNames below must already exist on `istio-system/kubegraf-gateway`, and
+# the HTTPS ones must reference the Secret `cluelake-com-tls` that
+# prod/certificate.yaml issues. A parentRef naming a listener that does not
+# exist does NOT error: the route is accepted by the API server, reports
+# `Accepted=False / NoMatchingParent`, and the hostname 404s with nothing in any
+# log. Apply certificate.yaml first, wait for Ready, add the listeners, then
+# apply this.
+#
+# ⚠ WHY CI CANNOT APPLY IT, AND WHY THAT MUST NOT BE "FIXED". The deploy role
+# holds admin scoped to this one namespace, and that does not reach Gateway API
+# custom resources — their CRD carries no aggregate-to-admin label. The obvious
+# next move is to grant the role HTTPRoute access. It is the wrong one:
+#
+#   kubegraf-gateway admits routes by NAMESPACE LABEL, not per hostname
+#     allowedRoutes.namespaces.from: Selector
+#     selector.matchLabels: { gateway-access: istio }
+#
+# and this namespace carries that label. Every listener on that gateway is
+# therefore attachable from here — including `kubegraf.io` and `*.kubegraf.io`.
+# A role that can write HTTPRoutes in this namespace can claim app.kubegraf.io
+# and take production traffic for the OTHER product. Write access for a
+# marketing site's CI is not worth that, so routing stays a human action.
+# -----------------------------------------------------------------------------
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: cluelake-site
+  namespace: cluelake-site
+  labels:
+    app.kubernetes.io/part-of: cluelake
+spec:
+  parentRefs:
+    - name: kubegraf-gateway
+      namespace: istio-system
+      sectionName: https-cluelake-com
+    - name: kubegraf-gateway
+      namespace: istio-system
+      sectionName: https-cluelake-com-www
+  hostnames:
+    - cluelake.com
+    - www.cluelake.com
+  rules:
+    - backendRefs:
+        - name: cluelake-site
+          port: 80
+---
+# The plaintext listeners, redirecting to HTTPS. Separate from the route above
+# because a single route cannot both proxy and redirect.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: cluelake-site-https-redirect
+  namespace: cluelake-site
+  labels:
+    app.kubernetes.io/part-of: cluelake
+spec:
+  parentRefs:
+    - name: kubegraf-gateway
+      namespace: istio-system
+      sectionName: http-cluelake-com
+    - name: kubegraf-gateway
+      namespace: istio-system
+      sectionName: http-cluelake-com-www
+  hostnames:
+    - cluelake.com
+    - www.cluelake.com
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301

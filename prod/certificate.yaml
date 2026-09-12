@@ -1,0 +1,31 @@
+# TLS for cluelake.com on the kubegraf-prod Istio gateway
+# (istio-system/kubegraf-gateway), mirroring domineta-com-tls.
+#
+# A CLUSTER ADMIN applies this. The site deploy role is namespace-scoped to
+# `cluelake-site` and cannot write istio-system. cert-manager issues it from
+# letsencrypt-prod over DNS-01 (Cloudflare), and the gateway's cluelake
+# listeners reference the resulting Secret.
+#
+# ⚠ PREREQUISITE, AND IT IS THE ONE THAT BITES. The Cloudflare API token
+# cert-manager solves DNS-01 with needs DNS:Edit on the **cluelake.com zone**.
+# Adding a zone to Cloudflare does not add it to any existing token's scope, and
+# this zone is new. Without it the Certificate sits Ready=False with a Challenge
+# stuck pending, and the listener referencing the Secret keeps serving the
+# gateway's default certificate — so the hostname answers, with the wrong name
+# on the certificate, which reads to a browser as an attack rather than as a
+# misconfiguration.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cluelake-com-tls
+  namespace: istio-system
+  labels:
+    app.kubernetes.io/part-of: cluelake
+spec:
+  secretName: cluelake-com-tls
+  dnsNames:
+    - cluelake.com
+    - www.cluelake.com
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer

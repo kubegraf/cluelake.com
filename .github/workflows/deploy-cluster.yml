@@ -1,0 +1,178 @@
+# Build the ClueLake site image, push it to ECR, roll it out on kubegraf-prod,
+# then prune the registry to the two most recent images.
+#
+# Mirrors kubegraf/domineta.com's deploy.yml. Read that one for the shape; the
+# differences are noted below and both of them matter.
+#
+# ⚠ DIFFERENCE 1 — THIS REPOSITORY IS PUBLIC, SO IT CANNOT USE THE ORG RUNNERS.
+# `runs-on: kubegraf-org-runners` SILENTLY never runs in a public repo: the
+# Default runner group is `allows_public_repositories: false`, so the job sits
+# queued until somebody cancels it, with nothing in the log to read. The same
+# exception `agentenx.com` carries, for the same reason. kubegraf-prod's API
+# endpoint is public, so a hosted runner can reach it.
+#
+# ⚠ DIFFERENCE 2 — AND IT IS WHY `environment:` IS LOAD-BEARING HERE. A public
+# repository can be forked, and a fork can open a PR that runs a workflow. The
+# IAM role's trust policy matches only `...:environment:aws-prod`, and a fork PR
+# cannot reach a GitHub Environment. On a private repo that claim shape is
+# merely correct; here it is the security boundary. Do not add a `ref:` subject.
+#
+# ⚠ WHEN THE SITE MOVES OFF GITHUB PAGES, MAKE THE REPO PRIVATE. Both of the
+# above disappear, and the workflow can use the org runners like everything else.
+name: deploy cluelake.com to kubegraf-prod
+
+on:
+  # Manual until DNS points at the cluster. Flipping a live site's origin is not
+  # something a merge should do on its own — see the README for the cutover
+  # order, which is: cluster serves, THEN routing, THEN DNS.
+  workflow_dispatch:
+
+concurrency:
+  # One rollout at a time. Two concurrent deploys race on the prune step and can
+  # delete each other's just-pushed image.
+  group: deploy-cluelake-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # the OIDC token the AWS role is assumed with
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # see DIFFERENCE 1 above before changing this
+    environment: aws-prod  # see DIFFERENCE 2 — this is what a fork cannot reach
+
+    env:
+      AWS_REGION: eu-north-1
+      CLUSTER_NAME: kubegraf-prod
+      NS: cluelake-site
+      ECR_REPO: kubegraf/cluelake-site
+      REGISTRY: 341796273224.dkr.ecr.eu-north-1.amazonaws.com
+      # ⚠ HOW MANY IMAGES SURVIVE A DEPLOY. Two: the one just rolled out and the
+      # one before it, which is the rollback. Read the prune step before raising
+      # or lowering it — the number is an outage budget, not a storage one.
+      KEEP_IMAGES: 2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: v1.30.0
+
+      # ⚠ PINNED TO ECR PUBLIC, NOT DOCKER HUB. setup-buildx's default driver
+      # pulls moby/buildkit from docker.io unauthenticated, which failed nine
+      # times across this org in one day on 2026-09-12. Same line kubegraf-infra
+      # has run since the 429 storm.
+      - uses: docker/setup-buildx-action@v3
+        id: buildx
+        continue-on-error: true
+        with:
+          driver-opts: image=public.ecr.aws/vend/moby/buildkit:buildx-stable-1
+
+      - name: Set up Docker Buildx (retry)
+        if: steps.buildx.outcome == 'failure'
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=public.ecr.aws/vend/moby/buildkit:buildx-stable-1
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::341796273224:role/github-actions-cluelake-site
+          role-session-name: deploy-cluelake-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to ECR
+        run: aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${REGISTRY}"
+
+      - name: Build and push
+        id: image
+        run: |
+          set -euo pipefail
+          TAG="sha-$(git rev-parse --short HEAD)"
+          docker buildx build \
+            --platform linux/amd64 \
+            --tag "${REGISTRY}/${ECR_REPO}:${TAG}" \
+            --push \
+            --provenance=false \
+            .
+          # ⚠ THE DIGEST IS READ BACK FROM THE REGISTRY, not taken from the
+          # build output. It is what the Deployment pins, so it has to be the
+          # digest ECR actually stored.
+          DIGEST="$(aws ecr describe-images --repository-name "${ECR_REPO}" \
+                      --image-ids imageTag="${TAG}" \
+                      --query 'imageDetails[0].imageDigest' --output text)"
+          echo "tag=${TAG}"       >> "$GITHUB_OUTPUT"
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "Pushed ${TAG} -> ${DIGEST}"
+
+      - name: Point kubectl at the cluster
+        run: aws eks update-kubeconfig --name "${CLUSTER_NAME}" --region "${AWS_REGION}"
+
+      # ⚠ CI APPLIES site.yaml AND NOTHING ELSE. routes.yaml and
+      # certificate.yaml are a cluster admin's, and the deploy role cannot write
+      # them — routes.yaml explains why, and it is a security boundary rather
+      # than a convention.
+      - name: Apply the site
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.ECR_REPO }}@${{ steps.image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          echo "deploying ${IMAGE}"
+          # envsubst with an explicit variable list, so a `$` anywhere else in
+          # the manifest (an nginx variable, a shell snippet) is left alone.
+          envsubst '${IMAGE}' < prod/site.yaml | kubectl apply -f -
+
+      - name: Wait for the rollout
+        run: kubectl -n "${NS}" rollout status deploy/cluelake-site --timeout=180s
+
+      - name: Check the pods are actually serving
+        # ⚠ NOT `curl cluelake.com`. Until DNS moves, the public hostname is
+        # still answered by GitHub Pages, so hitting it would prove nothing
+        # about this rollout and would pass even if every pod were broken.
+        # This asks the Service, inside the cluster.
+        run: |
+          set -euo pipefail
+          kubectl -n "${NS}" run curl-check --rm -i --restart=Never \
+            --image=curlimages/curl:8.10.1 --quiet -- \
+            -fsS -o /dev/null -w '%{http_code}\n' http://cluelake-site.${NS}.svc.cluster.local/healthz
+
+      - name: Prune the registry
+        # ⚠ THIS DELETES PRODUCTION IMAGES, SO READ THE ORDER. It runs LAST —
+        # after the rollout completed and after the pods answered — and keeps
+        # the newest KEEP_IMAGES by push time, which necessarily includes the
+        # one just deployed.
+        #
+        # The deployed digest is ALSO excluded by name, belt and braces: if a
+        # future edit moves this step earlier, or a concurrent build lands
+        # between the push and here, "newest two" could stop containing it.
+        # Deleting the running image is how a pod that reschedules later goes
+        # ImagePullBackOff with nothing in any log until it does — which
+        # happened to domineta-edge on 2026-09-05.
+        #
+        # The lifecycle policy on the repository is the backstop and is set much
+        # higher on purpose; THIS is what keeps the steady state at two.
+        env:
+          KEEP_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          ALL="$(aws ecr describe-images --repository-name "${ECR_REPO}" \
+                   --query 'sort_by(imageDetails,&imagePushedAt)[*].imageDigest' --output text)"
+          TOTAL="$(echo "${ALL}" | wc -w | tr -d ' ')"
+          echo "${TOTAL} image(s) in ${ECR_REPO}; keeping ${KEEP_IMAGES}"
+
+          if [ "${TOTAL}" -le "${KEEP_IMAGES}" ]; then
+            echo "nothing to prune"
+            exit 0
+          fi
+
+          DROP="$(echo "${ALL}" | tr ' ' '\n' | head -n "$(( TOTAL - KEEP_IMAGES ))")"
+          for D in ${DROP}; do
+            if [ "${D}" = "${KEEP_DIGEST}" ]; then
+              echo "::warning::refusing to delete ${D} — it is the image just deployed"
+              continue
+            fi
+            echo "deleting ${D}"
+            aws ecr batch-delete-image --repository-name "${ECR_REPO}" \
+              --image-ids imageDigest="${D}" >/dev/null
+          done
