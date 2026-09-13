@@ -26,8 +26,9 @@ const STEP = {
   eyebrow: "0ms",
   headline1: "60ms",
   headline2: "150ms",
+  trace: "210ms",
   panel: "220ms",
-  lede: "260ms",
+  lede: "300ms",
   ctas: "340ms",
   proof: "420ms",
   caption: "520ms",
@@ -40,6 +41,13 @@ const delay = (d: string): CSSProperties => ({ ["--d" as string]: d });
 /** ⚠ CAPABILITIES, NOT CLAIMS. Each line is something the product does and a
  *  reader could check. There is no customer count and no uptime figure here
  *  because neither exists yet — see the README. */
+/** ⚠ THE SAME FOUR NOUNS THE LEDE NAMES, in the order the panel lists them.
+ *  If one is added or removed here, the lede two elements down says something
+ *  the rotator does not, and the panel beside it shows a third thing. The
+ *  cycle length in globals.css divides by FOUR — change the count and the
+ *  words overlap. */
+const TRACE_NOUNS = ["deployment", "image", "build", "commit"] as const;
+
 const PROOF = [
   "Kubernetes-native",
   "OpenTelemetry-native",
@@ -119,6 +127,29 @@ export function Hero() {
               </span>
             </h1>
 
+            {/* ── The cycling noun ──────────────────────────────────────────
+                ⚠ THE SENTENCE IS WRITTEN OUT ONCE FOR SCREEN READERS AND ONCE
+                FOR EYES. A reader hearing this would otherwise get the prefix
+                followed by all four words run together — "back to the
+                deployment image build commit" — which is not a sentence. The
+                spoken copy names them as the list it is; the animated copy is
+                `aria-hidden` and exists only to be looked at. */}
+            <p style={delay(STEP.trace)} className="cl-enter mt-5 font-mono text-[13px] text-[color:var(--color-fg-subtle)] sm:text-[13.5px]">
+              <span className="sr-only">
+                Trace a regression back to the deployment, image, build or commit behind it.
+              </span>
+              <span aria-hidden>
+                Trace a regression back to the{" "}
+                <span className="cl-rotator font-semibold text-[color:var(--color-fg)]">
+                  {TRACE_NOUNS.map((noun, i) => (
+                    <span key={noun} style={{ ["--i" as string]: i }}>
+                      {noun}
+                    </span>
+                  ))}
+                </span>
+              </span>
+            </p>
+
             <p
               style={delay(STEP.lede)}
               className="cl-enter mt-6 max-w-[34rem] text-[17px] leading-relaxed text-[color:var(--color-fg-muted)] sm:text-[18px]"
@@ -147,14 +178,17 @@ export function Hero() {
               </Button>
             </div>
 
-            <ul
-              style={delay(STEP.proof)}
-              className="cl-enter mt-9 grid list-none gap-2.5 p-0 sm:flex sm:flex-wrap sm:gap-x-6 sm:gap-y-2"
-            >
-              {PROOF.map((p) => (
+            {/* ⚠ THE DELAY IS PER CHIP, NOT ON THE LIST. Animating the <ul>
+                brought all four in as one block, which reads as a single
+                element arriving late rather than as a sequence. Each chip now
+                carries its own offset from `STEP.proof`, 70ms apart — the same
+                interval the STEP table uses between the elements above. */}
+            <ul className="mt-9 grid list-none gap-2.5 p-0 sm:flex sm:flex-wrap sm:gap-x-6 sm:gap-y-2">
+              {PROOF.map((p, i) => (
                 <li
                   key={p}
-                  className="flex items-center gap-2 font-mono text-[11.5px] text-[color:var(--color-fg-subtle)]"
+                  style={delay(`${parseInt(STEP.proof, 10) + i * 70}ms`)}
+                  className="cl-enter flex items-center gap-2 font-mono text-[11.5px] text-[color:var(--color-fg-subtle)]"
                 >
                   <span
                     aria-hidden
