@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, GitCommit, Layers, Package, Play } from "lucide-react";
+import { ArrowRight, Layers, Package, Play } from "lucide-react";
 import { Frame } from "./Frame";
 import { MetricChart } from "./MetricChart";
 import { scenario, p99Series, DEPLOY_INDEX, INCIDENT_AT, DEPLOY_AT } from "@/lib/demo/data";
@@ -11,16 +11,21 @@ import { cn } from "@/lib/utils/cn";
  * The hero interface, and the product's argument in one screen: a regression,
  * the change that landed a minute before it, and the evidence to act on.
  *
- * ⚠ IT IS INTERACTIVE, NOT A PICTURE. The three evidence rows select, and the
- * detail beneath them changes — because a static image of a product is the
- * thing every competitor's landing page already has, and it tells an engineer
- * nothing about whether the workflow is any good.
+ * ⚠ IT IS INTERACTIVE, NOT A PICTURE. The evidence rows select, and the detail
+ * beneath them changes — because a static image of a product is the thing every
+ * competitor's landing page already has, and it tells an engineer nothing about
+ * whether the workflow is any good.
+ *
+ * ⚠ THE ROW COUNT IS NOT LOAD-BEARING, and this comment no longer names it. It
+ * said "three" until the commit row was removed, and a count in prose is the
+ * first thing to go stale when a row is added or dropped. `ROWS` is the list;
+ * the markup maps it.
  *
  * ⚠ THE DATA IS LOCAL STATE OVER `lib/demo/data`. Nothing here fetches, and
  * there is no pretend endpoint behind it. See that module's header.
  */
 
-type Row = { key: "image" | "build" | "commit"; icon: typeof Package; label: string; value: string; detail: string };
+type Row = { key: "image" | "build"; icon: typeof Package; label: string; value: string; detail: string };
 
 const ROWS: Row[] = [
   {
@@ -36,13 +41,6 @@ const ROWS: Row[] = [
     label: "build",
     value: scenario.build,
     detail: "Built from main. The build that produced this image, with its logs and the artifacts it published.",
-  },
-  {
-    key: "commit",
-    icon: GitCommit,
-    label: "commit",
-    value: `${scenario.commit} — ${scenario.commitMessage}`,
-    detail: `Authored by ${scenario.actor}. One commit in this build touched the payments client.`,
   },
 ];
 
