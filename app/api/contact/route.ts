@@ -41,7 +41,15 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         code: "delivery_failed",
-        message: "Your message couldn't be sent. Please try again, or email us directly.",
+        // ⚠ NO "OR EMAIL US DIRECTLY". This used to suggest it, and there is no
+        // address to email: the only one in the repo is the noreply sender the
+        // provider posts FROM, and nothing publishes a contact address on the
+        // site. Telling somebody whose message just failed to use a route that
+        // does not exist sends them hunting for something that is not there.
+        // Restore the clause only together with a published address. The
+        // wording is kept identical to the client's own failure text so the
+        // two cannot drift into saying different things.
+        message: "Your message couldn't be sent. Please try again.",
         request_id: requestId,
       },
       { status: 503 },
