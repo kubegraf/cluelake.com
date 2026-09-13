@@ -157,5 +157,76 @@ input[type="range"] {
 }
 
 @keyframes cl-draw { from { stroke-dashoffset: var(--dash, 1000); } to { stroke-dashoffset: 0; } }
-@keyframes cl-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes cl-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes cl-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@keyframes cl-settle { from { transform: translateY(15px); } to { transform: none; } }
+@keyframes cl-drift {
+  from { transform: translate3d(-1.5%, -1%, 0) scale(1); }
+  to   { transform: translate3d(1.5%, 1.5%, 0) scale(1.06); }
+}
+
+/* ── Entrance ──────────────────────────────────────────────────────────────
+   ⚠ ONE ORCHESTRATION, DRIVEN BY `--d`. A stagger assembled from ad-hoc delays
+   at each call site drifts out of rhythm the first time somebody inserts an
+   element; here the sequence is a list of numbers you can read in one place.
+
+   ⚠ TRANSFORM AND OPACITY ONLY, so the browser composites without laying out
+   again — an entrance that animates height or margin is a CLS score.
+
+   Both rules are `both`, so the element holds its start state until its delay
+   elapses and its end state forever after. The reduced-motion rule above
+   collapses the duration to 0.01ms, which lands on that end state immediately:
+   somebody who asked for less motion gets the finished page, never a blank one. */
+.cl-enter { animation: cl-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0ms); }
+
+/* ⚠ `cl-settle` MOVES WITHOUT FADING, AND THAT IS AN LCP DECISION. The hero
+   heading is this site's Largest Contentful Paint element, and Chrome does not
+   count an element as painted while it is transparent — so fading the headline
+   in over 600ms literally adds 600ms to the measured LCP. Sliding it while it
+   is fully opaque animates the same idea and reports as painted on the first
+   frame. Fade everything that is not the headline. */
+.cl-settle { animation: cl-settle 760ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0ms); }
+
+/* The ambient wash behind the hero: two soft radial pools in the mark's own
+   hue, drifting slowly enough to read as depth rather than as movement.
+   ⚠ ONE COMPOSITED ELEMENT, NOT A PARTICLE FIELD — it animates `transform`
+   only, so it never repaints, and a phone renders it for free. It is defined
+   after `.grid-field > *` deliberately: that rule would otherwise lift this
+   layer to `z-index: 1` and float the wash over the text it sits behind. */
+.cl-aurora {
+  position: absolute;
+  inset: -20% -10% auto;
+  z-index: 0;
+  height: 130%;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 38% at 20% 26%, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 70%),
+    radial-gradient(40% 34% at 82% 14%, color-mix(in srgb, var(--color-accent) 13%, transparent), transparent 72%);
+  animation: cl-drift 26s ease-in-out infinite alternate;
+}
+
+/* ⚠ `will-change` ONLY WHILE IT ACTUALLY MOVES. It pins a compositor layer for
+   the lifetime of the element, which is the right trade for something animating
+   continuously and pure waste for a layer the reduced-motion rule has already
+   frozen. */
+@media (prefers-reduced-motion: no-preference) {
+  .cl-aurora { will-change: transform; }
+}
+
+/* A status dot. Reused by the hero eyebrow and the panel's caption so the two
+   cannot drift apart. */
+.cl-beacon {
+  position: relative;
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  animation: cl-pulse 2.8s ease-in-out infinite;
+}
+
+/* ⚠ ANCHORED SECTIONS CLEAR THE STICKY HEADER. "See how it works" jumps to
+   `#what-changed`; without this the section's heading lands underneath the
+   64px header and the reader arrives mid-paragraph. */
+section[id] { scroll-margin-top: 5rem; }
