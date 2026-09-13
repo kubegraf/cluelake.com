@@ -19,6 +19,18 @@ export const site = {
    *  production hostname so a misconfigured preview is obvious, not silent. */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://cluelake.com",
   company: "Orkastor Ltd",
+  /**
+   * The Console, a SEPARATE application on its own hostname — `apps/cluelake` in
+   * the kubegraf.io monorepo, deployed to Vercel. This site never renders a
+   * credential form; it hands off.
+   *
+   * Mirrors how domineta.com points at console.domineta.com: the header links
+   * straight out, with no intermediate page of our own.
+   *
+   * Overridable so a preview deployment can point at a preview console rather
+   * than sending a reviewer to production to test a sign-in flow.
+   */
+  consoleUrl: process.env.NEXT_PUBLIC_CONSOLE_URL ?? "https://app.cluelake.com",
 } as const;
 
 /** Primary navigation. One source, used by the header and the mobile drawer, so

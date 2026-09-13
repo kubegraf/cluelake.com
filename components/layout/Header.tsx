@@ -7,7 +7,7 @@ import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Section";
-import { primaryNav } from "@/lib/config/site";
+import { primaryNav, site } from "@/lib/config/site";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -87,7 +87,7 @@ export function Header() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 lg:flex">
-          <Button href="/login" variant="ghost" size="sm">Sign in</Button>
+          <Button href={site.consoleUrl} variant="ghost" size="sm">Sign in</Button>
           <Button href="/get-started" size="sm">Get started</Button>
         </div>
 
@@ -127,7 +127,7 @@ export function Header() {
               ))}
             </nav>
             <div className="mt-3 grid gap-2 border-t border-[color:var(--color-line)] pt-3">
-              <Button href="/login" variant="secondary">Sign in</Button>
+              <Button href={site.consoleUrl} variant="secondary">Sign in</Button>
               <Button href="/get-started">Get started</Button>
             </div>
           </Container>
