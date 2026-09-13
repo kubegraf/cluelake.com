@@ -23,13 +23,25 @@ export function TraceWaterfall({ className }: { className?: string }) {
       meta={`${scenario.service} · ${(spans[0]!.ms / 1000).toFixed(2)}s`}
       bodyClassName="p-0"
     >
-      <ul className="m-0 list-none p-0" role="tree" aria-label="Trace spans">
+      {/* ⚠ THIS IS A LIST OF BUTTONS, NOT AN ARIA TREE. It was `role="tree"`
+          with `role="treeitem"` on each `<li>` — but the `<li>` was not
+          focusable; the focusable node was the `<button>` inside it. A treeitem
+          has to BE the focusable, keyboard-managed node, so the tree was
+          invalid as written, and none of the tree contract existed either: no
+          roving tabIndex, no Up/Down/Home/End, no expand/collapse. The role
+          announced a widget whose keys do nothing. Nothing is lost by dropping
+          it: the rows are flat siblings with no real nesting to navigate, and
+          depth is already conveyed visually by the indent — the detail panel
+          below carries the selected span's service and status, which is the
+          information a tree's structure would have been for. */}
+      <ul className="m-0 list-none p-0" aria-label="Trace spans">
         {spans.map((s) => {
           const isActive = s.id === selected;
           return (
-            <li key={s.id} role="treeitem" aria-selected={isActive} aria-level={s.depth + 1}>
+            <li key={s.id}>
               <button
                 type="button"
+                aria-pressed={isActive}
                 onClick={() => setSelected(s.id)}
                 className={cn(
                   "flex w-full items-center gap-2 border-b border-[color:var(--color-line)] px-3 py-2.5 text-left transition-colors sm:gap-3 sm:py-2",

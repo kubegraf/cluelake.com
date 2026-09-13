@@ -69,12 +69,20 @@ export function LogExplorer({ className }: { className?: string }) {
           </select>
         </label>
 
-        <div className="flex rounded-md border border-[color:var(--color-line)] p-0.5" role="tablist" aria-label="Log view">
+        {/* ⚠ TOGGLE BUTTONS, NOT ARIA TABS. This was `role="tablist"` /
+            `role="tab"` / `aria-selected` with no `role="tabpanel"` and no
+            `aria-controls` anywhere, and no arrow-key handler or roving
+            tabIndex. The tabs role tells a screen-reader user that Left/Right
+            moves between the two views; pressing them did nothing. Dropping the
+            role and using `aria-pressed` announces the same state without
+            promising keys that are not wired up. Matches ServiceMap and
+            WhatChangedPanel. */}
+        <div className="flex rounded-md border border-[color:var(--color-line)] p-0.5" role="group" aria-label="Log view">
           {(["patterns", "lines"] as const).map((v) => (
             <button
               key={v}
-              role="tab"
-              aria-selected={view === v}
+              type="button"
+              aria-pressed={view === v}
               onClick={() => setView(v)}
               className={cn(
                 "inline-flex min-h-8 items-center rounded px-2.5 py-1 font-mono text-[11.5px] transition-colors",

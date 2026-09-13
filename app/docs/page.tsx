@@ -32,7 +32,15 @@ export default function DocsPage() {
       />
       <Section>
         <div className="grid gap-10 lg:grid-cols-[16rem_minmax(0,1fr)]">
-          <nav aria-label="Documentation" className="lg:sticky lg:top-24 lg:self-start">
+          {/* ⚠ NOT A <nav> UNTIL THE ITEMS ARE LINKS. The categories below
+              render as plain <li> text because the doc pages are not published
+              yet. A navigation landmark with nothing operable in it is a dead
+              end: a screen-reader user jumping by landmark lands here, finds no
+              link, and has to work out whether the page is broken. A plain
+              <div> keeps the same layout and leaves the landmark list honest.
+              When CATEGORIES gains hrefs and these become <Link>s, put the
+              <nav aria-label="Documentation"> back. */}
+          <div className="lg:sticky lg:top-24 lg:self-start">
             {CATEGORIES.map((c) => (
               <div key={c.group} className="mb-6">
                 <h2 className="font-mono text-[11px] uppercase tracking-[0.16em] text-[color:var(--color-fg-subtle)]">
@@ -45,7 +53,7 @@ export default function DocsPage() {
                 </ul>
               </div>
             ))}
-          </nav>
+          </div>
 
           <div className="min-w-0">
             <h2 className="text-[22px] font-semibold">Send your first telemetry</h2>

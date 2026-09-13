@@ -46,8 +46,14 @@ export function Logo({ size = 19, className }: { size?: number; className?: stri
   return (
     <span className={cn("inline-flex items-center", className)} style={{ gap: size * 0.42 }}>
       <LogoSymbol size={Math.round(size * 1.5)} />
+      {/* ⚠ NO sr-only "ClueLake" HERE. There used to be one, and it doubled the
+          name: the wordmark above is live text, not an image, so it is already
+          read out. In the header the duplication is hidden because the wrapping
+          <Link> carries its own aria-label, which overrides everything inside
+          it. In the footer the Logo is not inside a link, so nothing overrode
+          it and the name was announced twice — "ClueLake ClueLake". The symbol
+          is alt="" on purpose for the same reason. */}
       <Wordmark size={size} />
-      <span className="sr-only">ClueLake</span>
     </span>
   );
 }

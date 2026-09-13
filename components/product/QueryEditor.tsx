@@ -68,12 +68,24 @@ export function QueryEditor({ className }: { className?: string }) {
 
   return (
     <Frame className={className} title="Query" meta="read-only" bodyClassName="p-0">
-      <div role="tablist" aria-label="Query language" className="flex flex-wrap gap-1 border-b border-[color:var(--color-line)] p-2">
+      {/* ⚠ THESE ARE TOGGLE BUTTONS, NOT ARIA TABS, AND DELIBERATELY SO. They
+          were declared `role="tablist"` / `role="tab"` / `aria-selected`, which
+          promises the whole tabs contract: a `role="tabpanel"` the tab owns via
+          `aria-controls`, Left/Right arrow movement between tabs, and a roving
+          tabIndex so the group is one tab stop. None of that existed, so a
+          screen-reader user heard "PromQL, tab, selected, 1 of 4", pressed
+          Right expecting to move, and nothing happened — a worse experience
+          than no role at all, because the role is what created the
+          expectation. `aria-pressed` describes exactly what these do and
+          promises nothing else. Same pattern as ServiceMap and
+          WhatChangedPanel. If a real tabpanel with keyboard handling ever
+          lands here, restore the tabs roles WITH the interactions. */}
+      <div role="group" aria-label="Query language" className="flex flex-wrap gap-1 border-b border-[color:var(--color-line)] p-2">
         {TABS.map((t) => (
           <button
             key={t.id}
-            role="tab"
-            aria-selected={tab === t.id}
+            type="button"
+            aria-pressed={tab === t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "inline-flex min-h-8 items-center rounded-md px-2.5 py-1 font-mono text-[11.5px] transition-colors",
