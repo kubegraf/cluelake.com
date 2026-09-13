@@ -24,23 +24,18 @@ export function Footer() {
                 <ul className="mt-3 grid list-none gap-2 p-0">
                   {col.links.map((l) => (
                     <li key={l.label}>
-                      {"external" in l && l.external ? (
-                        <a
-                          href={l.href}
-                          rel="noreferrer noopener"
-                          target="_blank"
-                          className="text-[13.5px] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
-                        >
-                          {l.label}
-                        </a>
-                      ) : (
-                        <Link
-                          href={l.href}
-                          className="text-[13.5px] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
-                        >
-                          {l.label}
-                        </Link>
-                      )}
+                      {/* ⚠ ONE BRANCH, BECAUSE EVERY FOOTER LINK IS FIRST-PARTY.
+                          The outbound case was here for a single link and went
+                          unreachable when it was removed; an `if` that can never
+                          be true is a claim about the data that stops being
+                          checked. `lib/config/site.ts` says what to restore if
+                          an external link is ever added back. */}
+                      <Link
+                        href={l.href}
+                        className="text-[13.5px] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
+                      >
+                        {l.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>
