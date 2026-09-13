@@ -40,7 +40,12 @@ const delay = (d: string): CSSProperties => ({ ["--d" as string]: d });
 /** ⚠ CAPABILITIES, NOT CLAIMS. Each line is something the product does and a
  *  reader could check. There is no customer count and no uptime figure here
  *  because neither exists yet — see the README. */
-const PROOF = ["Built for Kubernetes", "OpenTelemetry-native", "PromQL for the supported query set"];
+const PROOF = [
+  "Kubernetes-native",
+  "OpenTelemetry-native",
+  "PromQL compatible",
+  "eBPF visibility",
+];
 
 export function Hero() {
   return (
@@ -56,7 +61,7 @@ export function Hero() {
               className="cl-enter inline-flex items-center gap-2 rounded-full border border-[color:var(--color-line)] bg-[color:var(--color-surface)] py-1 pl-2.5 pr-3 font-mono text-[11px] uppercase tracking-[0.16em] text-[color:var(--color-fg-subtle)]"
             >
               <span aria-hidden className="cl-beacon" />
-              Deploy-aware observability
+              Deployment-aware observability
             </p>
 
             {/* ⚠ THE LINE BREAK IS A `block`, NOT A `<br>`. Each line is its own
@@ -64,40 +69,48 @@ export function Hero() {
                 inside a heading is read aloud as a break by some screen
                 readers. The text still wraps normally inside either line. */}
             <h1 className="mt-5 text-[clamp(2.5rem,7vw,4.6rem)] font-semibold tracking-[-0.036em]">
-              {/* ⚠ THE TRAILING SPACE IS LOAD-BEARING. Without it the two lines
-                  concatenate in the accessible name and the heading announces
-                  as "Know whatchanged." A `block` collapses the space visually,
-                  so it costs nothing on screen. */}
+              {/* ⚠ THE TRAILING SPACE IS LOAD-BEARING. Without it the lines
+                  concatenate in the accessible name and the heading announces as
+                  "Observe everything.Understand what changed." A `block`
+                  collapses the space visually, so it costs nothing on screen. */}
               <span className="cl-settle block" style={delay(STEP.headline1)}>
-                Know what{" "}
+                Observe everything.{" "}
               </span>
-              <span className="cl-settle relative block w-fit" style={delay(STEP.headline2)}>
-                changed.
-                {/* The underline draws itself, on the same easing and in the
-                    same accent as the metric line in the panel beside it — the
-                    two are the same gesture, which is the point the section is
-                    making. Decorative, so `aria-hidden`. */}
-                <svg
-                  aria-hidden
-                  viewBox="0 0 200 12"
-                  preserveAspectRatio="none"
-                  className="pointer-events-none absolute inset-x-0 -bottom-[0.06em] h-[0.16em] w-full"
-                >
-                  <path
-                    d="M2,9 C52,3 104,2.5 198,6"
-                    fill="none"
-                    stroke="var(--color-accent)"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    style={{
-                      strokeDasharray: 240,
-                      // Reduced motion collapses this to its end state, which is
-                      // the finished underline rather than no underline.
-                      animation: "cl-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) 520ms both",
-                      ["--dash" as string]: "240",
-                    }}
-                  />
-                </svg>
+              {/* ⚠ THE UNDERLINE IS ON ONE WORD, NOT THE LINE. The line is now a
+                  sentence rather than a single word, and a rule drawn under all
+                  of "Understand what changed." reads as a border on the heading
+                  instead of as emphasis. `w-fit` on an inline-block keeps the
+                  drawing the width of the word it is marking. */}
+              <span className="cl-settle block" style={delay(STEP.headline2)}>
+                Understand what{" "}
+                <span className="relative inline-block w-fit">
+                  changed.
+                  {/* The underline draws itself, on the same easing and in the
+                      same accent as the metric line in the panel beside it — the
+                      two are the same gesture, which is the point the section is
+                      making. Decorative, so `aria-hidden`. */}
+                  <svg
+                    aria-hidden
+                    viewBox="0 0 200 12"
+                    preserveAspectRatio="none"
+                    className="pointer-events-none absolute inset-x-0 -bottom-[0.06em] h-[0.16em] w-full"
+                  >
+                    <path
+                      d="M2,9 C52,3 104,2.5 198,6"
+                      fill="none"
+                      stroke="var(--color-accent)"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      style={{
+                        strokeDasharray: 240,
+                        // Reduced motion collapses this to its end state, which
+                        // is the finished underline rather than no underline.
+                        animation: "cl-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) 520ms both",
+                        ["--dash" as string]: "240",
+                      }}
+                    />
+                  </svg>
+                </span>
               </span>
             </h1>
 
@@ -105,8 +118,9 @@ export function Hero() {
               style={delay(STEP.lede)}
               className="cl-enter mt-6 max-w-[34rem] text-[17px] leading-relaxed text-[color:var(--color-fg-muted)] sm:text-[18px]"
             >
-              ClueLake connects logs, metrics, traces and Kubernetes context so you can move
-              from a production regression to the deployment that caused it.
+              ClueLake connects logs, metrics, traces, and Kubernetes deployments so you can
+              monitor your systems, investigate performance changes, and trace regressions back
+              to the deployment, image, build, or commit behind them.
             </p>
 
             {/* ⚠ FULL-WIDTH BUTTONS ON A PHONE, AUTO FROM `sm`. A 44px-tall
