@@ -55,31 +55,52 @@ export function PricingMeters() {
           lede="Rates are not published yet. This works out the quantities a rate would apply to, which is the part you cannot look up."
         />
         <div className="mt-8 grid max-w-[46rem] gap-6 rounded-xl border border-[color:var(--color-line)] p-6">
-          <label className="grid gap-2">
+          {/* ⚠ THE LABEL IS THE CAPTION ONLY, AND THE VALUE RIDES ON
+              aria-valuetext. Both sliders used to sit inside an implicit
+              <label> that wrapped the caption AND the live value, so the
+              control's accessible name was "Telemetry accepted per day 50 GiB"
+              and it CHANGED on every arrow press — on top of the value the
+              range widget already announces natively. Arrowing from 50 to 60
+              produced ten renamings, ten native value announcements and ten
+              fires of the derived <dl> below, which is an announcement backlog
+              a keyboard user cannot get out of. Pointing htmlFor at the caption
+              alone fixes the name; aria-valuetext supplies the unit once, in
+              the place assistive tech already looks for it. */}
+          <div className="grid gap-2">
             <span className="flex items-baseline justify-between text-[13.5px]">
-              <span>Telemetry accepted per day</span>
-              <span className="font-mono text-[color:var(--color-accent)]">{gibPerDay} GiB</span>
+              <label htmlFor="meter-ingest">Telemetry accepted per day</label>
+              <span aria-hidden className="font-mono text-[color:var(--color-accent)]">{gibPerDay} GiB</span>
             </span>
             <input
+              id="meter-ingest"
               type="range" min={1} max={500} value={gibPerDay}
+              aria-valuetext={`${gibPerDay} GiB`}
               onChange={(e) => setGibPerDay(Number(e.target.value))}
               className="accent-[color:var(--color-accent)]"
             />
-          </label>
+          </div>
 
-          <label className="grid gap-2">
+          <div className="grid gap-2">
             <span className="flex items-baseline justify-between text-[13.5px]">
-              <span>Retention</span>
-              <span className="font-mono text-[color:var(--color-accent)]">{retentionDays} days</span>
+              <label htmlFor="meter-retention">Retention</label>
+              <span aria-hidden className="font-mono text-[color:var(--color-accent)]">{retentionDays} days</span>
             </span>
             <input
+              id="meter-retention"
               type="range" min={1} max={365} value={retentionDays}
+              aria-valuetext={`${retentionDays} days`}
               onChange={(e) => setRetentionDays(Number(e.target.value))}
               className="accent-[color:var(--color-accent)]"
             />
-          </label>
+          </div>
 
-          <dl aria-live="polite" className="grid gap-2 border-t border-[color:var(--color-line)] pt-5 sm:grid-cols-2">
+          {/* ⚠ THIS <dl> NO LONGER ANNOUNCES. It carried aria-live="polite", so
+              every intermediate step of a drag or a held arrow key queued two
+              more utterances behind the slider's own. The figures are derived
+              from the slider the user is already hearing, so nothing is lost by
+              letting them update silently — a user who wants them reads them,
+              or tabs to them. Do not put aria-live back without debouncing it. */}
+          <dl className="grid gap-2 border-t border-[color:var(--color-line)] pt-5 sm:grid-cols-2">
             <Figure label="Ingest, per month" value={`${derived.monthlyIngest.toLocaleString()} GiB`} />
             <Figure label="Held at steady state" value={`${derived.retained.toLocaleString()} GiB`} />
           </dl>
