@@ -15,7 +15,6 @@ export const site = {
    *  production hostname so a misconfigured preview is obvious, not silent. */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://cluelake.com",
   company: "Orkastor Ltd",
-  github: "https://github.com/kubegraf",
 } as const;
 
 /** Primary navigation. One source, used by the header and the mobile drawer, so
@@ -28,6 +27,13 @@ export const primaryNav = [
   { href: "/docs", label: "Docs" },
 ] as const;
 
+/**
+ * ⚠ EVERY LINK HERE IS FIRST-PARTY, and the Footer is written on that
+ * assumption — it renders each entry with `next/link` and has no branch for an
+ * outbound one. Adding an external link back means restoring that branch, with
+ * `rel="noreferrer noopener"` and `target="_blank"`, rather than dropping an
+ * absolute URL into this list and finding it routed as a path.
+ */
 export const footerNav = [
   {
     title: "Product",
@@ -46,7 +52,6 @@ export const footerNav = [
       { href: "/company", label: "Company" },
       { href: "/contact", label: "Contact" },
       { href: "/changelog", label: "Changelog" },
-      { href: site.github, label: "GitHub", external: true },
     ],
   },
   {
