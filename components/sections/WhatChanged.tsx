@@ -44,7 +44,10 @@ export function WhatChanged() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] items-baseline gap-3">
+    // ⚠ THE LABEL COLUMN STACKS BELOW `sm`. A fixed 8.5rem label beside the
+    // value left the value 90px on a 320px screen, which is not enough for a
+    // digest or a commit subject — the label goes above it instead.
+    <div className="grid items-baseline gap-x-3 gap-y-0.5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-y-3">
       <dt className="text-[13px] text-[color:var(--color-fg-subtle)]">{label}</dt>
       <dd className="m-0 min-w-0 break-words font-mono text-[12.5px] text-[color:var(--color-fg)]">{value}</dd>
     </div>

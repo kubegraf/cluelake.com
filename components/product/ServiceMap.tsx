@@ -23,46 +23,53 @@ export function ServiceMap({ className }: { className?: string }) {
 
   return (
     <Frame className={className} title="Service map" meta="last 15 minutes" bodyClassName="p-0">
-      <div className="relative">
-        <svg viewBox="0 0 100 100" className="block h-[15rem] w-full" preserveAspectRatio="xMidYMid meet" aria-hidden>
-          {serviceEdges.map((e) => {
-            const a = pos(e.from);
-            const b = pos(e.to);
-            return (
-              <line
-                key={`${e.from}-${e.to}`}
-                x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-                stroke={e.degraded ? "var(--color-bad)" : "var(--color-line-strong)"}
-                strokeWidth={e.degraded ? 0.7 : 0.5}
-                strokeDasharray={e.degraded ? "2 1.5" : undefined}
-              />
-            );
-          })}
-        </svg>
+      {/* ⚠ THE MAP PANS RATHER THAN CROPPING. Node labels are positioned by
+          percentage and centred on their point, so below ~330px the leftmost
+          service was cut in half by the frame. A diagram that loses a node is
+          worse than one that scrolls, and the min-width keeps the geometry —
+          and therefore which dependency is degraded — intact at any width. */}
+      <div className="overflow-x-auto">
+        <div className="relative min-w-[19rem]">
+          <svg viewBox="0 0 100 100" className="block h-[15rem] w-full" preserveAspectRatio="xMidYMid meet" aria-hidden>
+            {serviceEdges.map((e) => {
+              const a = pos(e.from);
+              const b = pos(e.to);
+              return (
+                <line
+                  key={`${e.from}-${e.to}`}
+                  x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                  stroke={e.degraded ? "var(--color-bad)" : "var(--color-line-strong)"}
+                  strokeWidth={e.degraded ? 0.7 : 0.5}
+                  strokeDasharray={e.degraded ? "2 1.5" : undefined}
+                />
+              );
+            })}
+          </svg>
 
-        {/* Nodes are real buttons over the SVG rather than <circle> elements, so
-            they are keyboard reachable and carry accessible names. */}
-        {serviceNodes.map((n) => (
-          <button
-            key={n.id}
-            type="button"
-            onClick={() => setSelected(n.id)}
-            aria-pressed={n.id === selected}
-            className={cn(
-              "absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border px-2 py-1 font-mono text-[11px] transition-colors",
-              n.id === selected
-                ? "border-[color:var(--color-accent-line)] bg-[color:var(--color-accent-wash)] text-[color:var(--color-fg)]"
-                : "border-[color:var(--color-line)] bg-[color:var(--color-surface)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
-              n.errPct > 1 && "border-[color:var(--color-bad)]",
-            )}
-            style={{ left: `${n.x}%`, top: `${n.y}%` }}
-          >
-            {n.label}
-            {n.kind === "datastore" ? (
-              <span className="ml-1 text-[color:var(--color-fg-subtle)]">db</span>
-            ) : null}
-          </button>
-        ))}
+          {/* Nodes are real buttons over the SVG rather than <circle> elements, so
+              they are keyboard reachable and carry accessible names. */}
+          {serviceNodes.map((n) => (
+            <button
+              key={n.id}
+              type="button"
+              onClick={() => setSelected(n.id)}
+              aria-pressed={n.id === selected}
+              className={cn(
+                "absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border px-2 py-1.5 font-mono text-[11px] transition-colors",
+                n.id === selected
+                  ? "border-[color:var(--color-accent-line)] bg-[color:var(--color-accent-wash)] text-[color:var(--color-fg)]"
+                  : "border-[color:var(--color-line)] bg-[color:var(--color-surface)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
+                n.errPct > 1 && "border-[color:var(--color-bad)]",
+              )}
+              style={{ left: `${n.x}%`, top: `${n.y}%` }}
+            >
+              {n.label}
+              {n.kind === "datastore" ? (
+                <span className="ml-1 text-[color:var(--color-fg-subtle)]">db</span>
+              ) : null}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div aria-live="polite" className="grid gap-1.5 border-t border-[color:var(--color-line)] p-3 sm:grid-cols-3">

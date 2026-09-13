@@ -93,7 +93,12 @@ export function WhatChangedPanel({ className }: { className?: string }) {
           </span>
         </div>
 
-        <ul className="mt-2.5 grid gap-1" role="list">
+        {/* ⚠ `minmax(0,1fr)` RATHER THAN THE DEFAULT `auto`. A grid item's
+            automatic minimum size is its content's min-content width, and a row
+            here contains a nowrap monospace digest — so the column grew to 442px
+            inside a 320px frame and the evidence ran out of the panel unseen.
+            The explicit minmax lets the column shrink and the value truncate. */}
+        <ul className="mt-2.5 grid grid-cols-[minmax(0,1fr)] gap-1" role="list">
           {ROWS.map((row) => {
             const Icon = row.icon;
             const isActive = row.key === selected;
@@ -104,7 +109,7 @@ export function WhatChangedPanel({ className }: { className?: string }) {
                   onClick={() => setSelected(row.key)}
                   aria-pressed={isActive}
                   className={cn(
-                    "flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
+                    "flex w-full min-w-0 items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
                     isActive
                       ? "border-[color:var(--color-accent-line)] bg-[color:var(--color-accent-wash)]"
                       : "border-transparent hover:bg-[color:var(--color-surface-2)]",
@@ -117,10 +122,15 @@ export function WhatChangedPanel({ className }: { className?: string }) {
                       isActive ? "text-[color:var(--color-accent)]" : "text-[color:var(--color-fg-subtle)]",
                     )}
                   />
-                  <span className="w-14 shrink-0 font-mono text-[11.5px] text-[color:var(--color-fg-subtle)]">
+                  <span className="shrink-0 font-mono text-[11.5px] text-[color:var(--color-fg-subtle)] sm:w-14">
                     {row.label}
                   </span>
-                  <span className="truncate font-mono text-[12.5px] text-[color:var(--color-fg)]">
+                  {/* ⚠ WRAPS ON A PHONE. Two digests either side of an arrow is
+                      the evidence this panel exists to show, and
+                      "sha256:731f01 → sha256:9a…" is the half of it that
+                      matters going missing. It truncates from `sm` up, where
+                      the row has the width for one line. */}
+                  <span className="min-w-0 flex-1 break-words font-mono text-[12.5px] text-[color:var(--color-fg)] sm:truncate">
                     {row.value}
                   </span>
                 </button>

@@ -32,17 +32,26 @@ export function TraceWaterfall({ className }: { className?: string }) {
                 type="button"
                 onClick={() => setSelected(s.id)}
                 className={cn(
-                  "flex w-full items-center gap-3 border-b border-[color:var(--color-line)] px-3 py-2 text-left transition-colors",
+                  "flex w-full items-center gap-2 border-b border-[color:var(--color-line)] px-3 py-2.5 text-left transition-colors sm:gap-3 sm:py-2",
                   isActive ? "bg-[color:var(--color-accent-wash)]" : "hover:bg-[color:var(--color-surface-2)]",
                 )}
               >
+                {/* ⚠ THE NAME COLUMN IS NARROWER ON A PHONE, NOT THE BAR. A fixed
+                    190px name column plus a service column left no room for the
+                    waterfall itself below ~400px — the bars were pushed out of
+                    the frame entirely, which is a trace view with no trace in it.
+                    The bar is the content; the labels give way to it. */}
                 <span
-                  className="shrink-0 truncate font-mono text-[12px] text-[color:var(--color-fg)]"
-                  style={{ paddingLeft: s.depth * 14, width: 190 }}
+                  className="w-[8.25rem] shrink-0 truncate font-mono text-[12px] text-[color:var(--color-fg)] sm:w-[190px]"
+                  style={{ paddingLeft: s.depth * 14 }}
                 >
                   {s.name}
                 </span>
-                <span className="w-16 shrink-0 font-mono text-[11px] text-[color:var(--color-info)]">{s.service}</span>
+                {/* Hidden on a phone rather than squeezed: the selected span's
+                    service is spelled out in the detail panel below. */}
+                <span className="hidden w-16 shrink-0 font-mono text-[11px] text-[color:var(--color-info)] sm:inline">
+                  {s.service}
+                </span>
 
                 <span className="relative h-3.5 min-w-0 flex-1 rounded bg-[color:var(--color-ink)]">
                   <span
@@ -54,7 +63,7 @@ export function TraceWaterfall({ className }: { className?: string }) {
                   />
                 </span>
 
-                <span className="w-14 shrink-0 text-right font-mono text-[11.5px] text-[color:var(--color-fg-muted)]">
+                <span className="w-[3.25rem] shrink-0 text-right font-mono text-[11.5px] text-[color:var(--color-fg-muted)] sm:w-14">
                   {s.ms.toLocaleString()}ms
                 </span>
               </button>
