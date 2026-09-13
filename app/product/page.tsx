@@ -19,7 +19,7 @@ export default function ProductPage() {
     <>
       <PageHeader
         eyebrow="Product"
-        title="One backend for logs, metrics and traces."
+        title="Logs, metrics and traces, with the deployment attached."
         lede="ClueLake stores telemetry with the deployment context already attached, so an investigation starts from the change rather than ending at it."
       />
       <Differentiator />

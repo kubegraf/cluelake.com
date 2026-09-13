@@ -236,7 +236,7 @@ export function WhatChangedPanel({ className }: { className?: string }) {
                   onClick={() => setSelected(row.key)}
                   aria-pressed={isActive}
                   className={cn(
-                    "flex w-full min-w-0 items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
+                    "flex w-full min-w-0 items-center gap-2.5 rounded-lg border px-2.5 py-2.5 sm:py-2 text-left transition-colors",
                     isActive
                       ? "border-[color:var(--color-accent-line)] bg-[color:var(--color-accent-wash)]"
                       : "border-transparent hover:bg-[color:var(--color-surface-2)]",

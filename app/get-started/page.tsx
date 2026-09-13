@@ -12,7 +12,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 const STEPS = [
-  { n: 1, title: "Create a workspace", body: "A workspace is the tenancy boundary: telemetry, policy, retention and billing all belong to it. Pick the region it should live in — telemetry is not moved between regions." },
+  { n: 1, title: "Create a workspace", body: "A workspace is the tenancy boundary: telemetry, policy, retention and billing all belong to it. Pick the region it should live in — telemetry is not moved between regions implicitly." },
   { n: 2, title: "Create an environment", body: "Production, staging, whatever you run. Retention and cardinality budgets are set per environment, so staging need not be kept as long as production." },
   { n: 3, title: "Install the collector", body: "A standard OpenTelemetry Collector with a ClueLake exporter. If you already run one, this is an exporter block rather than a new component." },
   { n: 4, title: "Send OTLP", body: "Point your applications at the collector, or export to ClueLake directly over OTLP/HTTP or OTLP/gRPC." },

@@ -65,7 +65,7 @@ export default function FeaturesPage() {
       <PageHeader
         eyebrow="Features"
         title="What ClueLake does."
-        lede="Grouped by the job rather than by the signal. Anything not listed here is not built yet — this page describes the product, not a roadmap."
+        lede="Grouped by the job rather than by the signal. This page describes what ClueLake does, not a roadmap — and ClueLake is in development, with no public release yet."
       />
       {GROUPS.map((g) => (
         <Section key={g.title}>

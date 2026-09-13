@@ -7,6 +7,12 @@ import { site } from "@/lib/config/site";
 const paths = [
   "/", "/product", "/features", "/architecture", "/pricing",
   "/docs", "/security", "/company", "/contact", "/changelog",
+  // ⚠ THE LEGAL PAGES BELONG HERE. They were missing while the footer links
+  // both and neither is noIndex, so they were reachable, indexable and absent
+  // from the sitemap — which is the combination that gets them indexed late or
+  // not at all. The exclusion note above covers /login and /get-started only;
+  // these were an omission rather than a decision.
+  "/legal/privacy", "/legal/terms",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

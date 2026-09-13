@@ -11,7 +11,7 @@ export function Footer() {
           <div className="min-w-[15rem] max-w-[19rem]">
             <Logo size={18} />
             <p className="mt-3.5 text-[13.5px] leading-relaxed text-[color:var(--color-fg-subtle)]">
-              Observability for Kubernetes and cloud infrastructure.
+              Deployment-aware observability for Kubernetes.
             </p>
           </div>
 
@@ -30,9 +30,15 @@ export function Footer() {
                           be true is a claim about the data that stops being
                           checked. `lib/config/site.ts` says what to restore if
                           an external link is ever added back. */}
-                      <Link
+                                            {/* ⚠ THE HIT AREA IS BIGGER THAN THE TEXT, ON PURPOSE. At 13.5px
+                          these links are ~21.6px tall with 8px between them — the smallest
+                          targets on the site, well under the 44px a thumb needs, in the one
+                          place a phone user is most likely reaching one-handed. `block py-1.5
+                          -my-1.5` grows the target to ~40px and pulls the same amount back off
+                          the margin, so the column's visual rhythm is unchanged. */}
+<Link
                         href={l.href}
-                        className="text-[13.5px] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
+                        className="-my-1.5 block py-1.5 text-[13.5px] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
                       >
                         {l.label}
                       </Link>
