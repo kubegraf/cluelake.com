@@ -227,6 +227,50 @@ input[type="range"] {
   animation-delay: calc(var(--i, 0) * var(--cycle, 10.4s) / 4);
 }
 
+/* ⚠ THE FIRST WORD OF A HEADLINE ROTATOR GETS ITS OWN KEYFRAME, AND IT IS AN
+   LCP DECISION — the same one `cl-settle` is documented for a few rules up.
+   The shared `cl-rotate-word` starts at `opacity: 0` and fades in at 2%. In the
+   <h1> that is the Largest Contentful Paint element arriving transparent, so
+   Chrome does not count it as painted until the fade finishes and the measured
+   LCP moves by however long that takes.
+
+   This one starts OPAQUE and only ever fades OUT. The headline is painted on
+   the first frame; the cycling is something that happens to it afterwards. */
+@keyframes cl-rotate-word-first {
+  0%, 21%   { opacity: 1; transform: none; }
+  25%, 100% { opacity: 0; transform: translateY(-0.4em); }
+}
+
+/* A rotator inside the headline. Same grid-stacking as `.cl-rotator`, but the
+   first word is painted immediately — see the keyframe above. */
+.cl-rotator-lcp > span:first-child {
+  animation-name: cl-rotate-word-first;
+}
+
+/* ── The travelling highlight ─────────────────────────────────────────────
+   The lede names four signals — logs, metrics, traces, deployments — and the
+   accent walks across them in turn. No word changes; the emphasis moves, which
+   is the quieter half of "the texts are changing" and the half that survives
+   being read. */
+.cl-marching > span {
+  position: relative;
+  animation: cl-march var(--cycle, 10.4s) steps(1, end) infinite both;
+  animation-delay: calc(var(--i, 0) * var(--cycle, 10.4s) / 4);
+}
+
+@keyframes cl-march {
+  0%, 24%   { color: var(--color-accent); }
+  25%, 100% { color: inherit; }
+}
+
+/* ⚠ SAME OVERRIDE, SAME REASON as the rotator below. `steps(1, end)` under the
+   global reduced-motion rule lands on the final keyframe, which is
+   `color: inherit` — harmless here, the lede simply reads unhighlighted. It is
+   pinned anyway so the behaviour is stated rather than inherited by luck. */
+@media (prefers-reduced-motion: reduce) {
+  .cl-marching > span { animation: none !important; color: inherit; }
+}
+
 @keyframes cl-rotate-word {
   0%        { opacity: 0; transform: translateY(0.4em); }
   2%, 21%   { opacity: 1; transform: none; }
