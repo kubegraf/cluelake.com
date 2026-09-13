@@ -93,6 +93,27 @@ p { text-wrap: pretty; }
 
 ::selection { background: var(--color-accent-wash); color: var(--color-fg); }
 
+/* ⚠ 16px ON A PHONE IS NOT A TYPE DECISION, IT IS THE ZOOM THRESHOLD. iOS
+   Safari zooms the viewport when a field smaller than 16px takes focus, and it
+   does not zoom back out — so a visitor filling in the contact form is left
+   panning a page that no longer fits. The controls read one step larger on a
+   phone and are unchanged from `sm` up, where no browser does this. */
+@media (max-width: 639.98px) {
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* A range track is ~16px tall by default, which is a thumb-sized control that
+   is not thumb-sized. The extra height is touch area, not decoration. */
+input[type="range"] {
+  width: 100%;
+  height: 2rem;
+  touch-action: pan-y;
+}
+
 /* A visible, consistent focus ring everywhere. Keyboard users must never have
    to guess where they are. */
 :focus-visible {

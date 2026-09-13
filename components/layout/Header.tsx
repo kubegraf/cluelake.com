@@ -107,7 +107,12 @@ export function Header() {
         <div
           id="mobile-nav"
           ref={panelRef}
-          className="border-t border-[color:var(--color-line)] bg-[color:var(--color-ink)] lg:hidden"
+          // ⚠ THE DRAWER SCROLLS WITHIN THE VIEWPORT. Opening it locks the body,
+          // so anything below the fold is unreachable — on a landscape phone
+          // that was "Sign in" and "Get started", the two links the header
+          // exists for. `dvh` rather than `vh` because mobile browsers count the
+          // collapsing address bar in `vh` and clip the last item behind it.
+          className="max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-t border-[color:var(--color-line)] bg-[color:var(--color-ink)] lg:hidden"
         >
           <Container className="py-4">
             <nav aria-label="Primary (mobile)" className="grid gap-1">

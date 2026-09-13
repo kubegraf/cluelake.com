@@ -68,7 +68,7 @@ export function QueryEditor({ className }: { className?: string }) {
 
   return (
     <Frame className={className} title="Query" meta="read-only" bodyClassName="p-0">
-      <div role="tablist" aria-label="Query language" className="flex gap-1 border-b border-[color:var(--color-line)] p-2">
+      <div role="tablist" aria-label="Query language" className="flex flex-wrap gap-1 border-b border-[color:var(--color-line)] p-2">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -76,7 +76,7 @@ export function QueryEditor({ className }: { className?: string }) {
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              "rounded-md px-2.5 py-1 font-mono text-[11.5px] transition-colors",
+              "inline-flex min-h-8 items-center rounded-md px-2.5 py-1 font-mono text-[11.5px] transition-colors",
               tab === t.id
                 ? "bg-[color:var(--color-surface-2)] text-[color:var(--color-fg)]"
                 : "text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)]",

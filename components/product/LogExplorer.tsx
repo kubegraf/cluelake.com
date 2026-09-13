@@ -77,7 +77,7 @@ export function LogExplorer({ className }: { className?: string }) {
               aria-selected={view === v}
               onClick={() => setView(v)}
               className={cn(
-                "rounded px-2.5 py-1 font-mono text-[11.5px] transition-colors",
+                "inline-flex min-h-8 items-center rounded px-2.5 py-1 font-mono text-[11.5px] transition-colors",
                 view === v
                   ? "bg-[color:var(--color-surface-2)] text-[color:var(--color-fg)]"
                   : "text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)]",
@@ -97,7 +97,12 @@ export function LogExplorer({ className }: { className?: string }) {
               className="flex items-center gap-3 border-b border-[color:var(--color-line)] px-3 py-2.5 last:border-0"
             >
               <span className={cn("w-12 shrink-0 font-mono text-[11px]", SEV_TONE[p.severity])}>{p.severity}</span>
-              <span className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-[color:var(--color-fg)]">
+              {/* ⚠ WRAPS ON A PHONE, TRUNCATES ON A DESKTOP. Truncated to the
+                  158px a 360px screen leaves, "upstream request failed:
+                  payments timeout…" is an ellipsis where the finding should be.
+                  Two lines cost nothing here; the lost half of the sentence is
+                  the whole reason the row exists. */}
+              <span className="min-w-0 flex-1 break-words font-mono text-[12.5px] text-[color:var(--color-fg)] sm:truncate">
                 {p.pattern}
               </span>
               <span className="shrink-0 font-mono text-[12px] text-[color:var(--color-fg-subtle)]">
@@ -117,12 +122,15 @@ export function LogExplorer({ className }: { className?: string }) {
               {visible.map((l, i) => (
                 <li
                   key={`${l.ts}-${i}`}
-                  className="flex gap-3 border-b border-[color:var(--color-line)] px-3 py-1.5 last:border-0"
+                  className="flex flex-wrap gap-x-3 gap-y-0.5 border-b border-[color:var(--color-line)] px-3 py-1.5 last:border-0 sm:flex-nowrap"
                 >
                   <span className="shrink-0 font-mono text-[11px] text-[color:var(--color-fg-subtle)]">{l.ts}</span>
                   <span className={cn("w-10 shrink-0 font-mono text-[11px]", SEV_TONE[l.severity])}>{l.severity}</span>
                   <span className="shrink-0 font-mono text-[11px] text-[color:var(--color-info)]">{l.app}</span>
-                  <span className="min-w-0 flex-1 font-mono text-[12px] text-[color:var(--color-fg-muted)]">
+                  {/* ⚠ THE MESSAGE TAKES ITS OWN LINE ON A PHONE. Beside three
+                      fixed columns it had ~115px left and wrapped to five
+                      ragged lines; on its own row it reads. */}
+                  <span className="min-w-0 basis-full font-mono text-[12px] text-[color:var(--color-fg-muted)] sm:flex-1 sm:basis-auto">
                     {l.message}
                     {l.traceId ? (
                       <span className="ml-2 text-[color:var(--color-accent)]">trace_id={l.traceId}</span>
