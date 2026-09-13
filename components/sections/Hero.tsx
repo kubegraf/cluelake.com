@@ -48,6 +48,16 @@ const delay = (d: string): CSSProperties => ({ ["--d" as string]: d });
  *  words overlap. */
 const TRACE_NOUNS = ["deployment", "image", "build", "commit"] as const;
 
+/** ⚠ EACH ONE MUST READ AS A SENTENCE AFTER "Observe". They are objects of the
+ *  same verb, not a list of features — "Observe every deploy." is a claim the
+ *  product backs; "Observe Kubernetes." would be a category. Four entries,
+ *  because the cycle in globals.css divides by four. */
+const OBSERVE_OBJECTS = ["everything", "every signal", "every deploy", "every change"] as const;
+
+/** The four signals the lede names, in the order it names them. The highlight
+ *  walks across these; the words themselves never change. */
+const LEDE_SIGNALS = ["logs", "metrics", "traces", "Kubernetes deployments"] as const;
+
 const PROOF = [
   "Kubernetes-native",
   "OpenTelemetry-native",
@@ -86,8 +96,23 @@ export function Hero() {
                   concatenate in the accessible name and the heading announces as
                   "Observe everything.Understand what changed." A `block`
                   collapses the space visually, so it costs nothing on screen. */}
+              {/* ⚠ THE ROTATOR IS IN THE LCP ELEMENT, so its first word is
+                  painted opaque on frame one — see `cl-rotate-word-first` in
+                  globals.css. A plain fade-in here would push this site's
+                  Largest Contentful Paint out by the length of the fade, which
+                  is the exact trap `cl-settle` is documented for. */}
               <span className="cl-settle block" style={delay(STEP.headline1)}>
-                Observe everything.{" "}
+                <span className="sr-only">Observe everything.</span>
+                <span aria-hidden>
+                  Observe{" "}
+                  <span className="cl-rotator cl-rotator-lcp">
+                    {OBSERVE_OBJECTS.map((word, i) => (
+                      <span key={word} style={{ ["--i" as string]: i }}>
+                        {word}.
+                      </span>
+                    ))}
+                  </span>
+                </span>{" "}
               </span>
               {/* ⚠ THE UNDERLINE IS ON ONE WORD, NOT THE LINE. The line is now a
                   sentence rather than a single word, and a rule drawn under all
@@ -154,9 +179,17 @@ export function Hero() {
               style={delay(STEP.lede)}
               className="cl-enter mt-6 max-w-[34rem] text-[17px] leading-relaxed text-[color:var(--color-fg-muted)] sm:text-[18px]"
             >
-              ClueLake connects logs, metrics, traces, and Kubernetes deployments so you can
-              monitor your systems, investigate performance changes, and trace regressions back
-              to the deployment, image, build, or commit behind them.
+              ClueLake connects{" "}
+              <span className="cl-marching">
+                {LEDE_SIGNALS.map((sig, i) => (
+                  <span key={sig} style={{ ["--i" as string]: i }}>
+                    {sig}
+                    {i < LEDE_SIGNALS.length - 2 ? ", " : i === LEDE_SIGNALS.length - 2 ? ", and " : ""}
+                  </span>
+                ))}
+              </span>{" "}
+              so you can monitor your systems, investigate performance changes, and trace
+              regressions back to the deployment, image, build, or commit behind them.
             </p>
 
             {/* ⚠ FULL-WIDTH BUTTONS ON A PHONE, AUTO FROM `sm`. A 44px-tall
