@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import { memo, useId, useMemo } from "react";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -19,7 +19,15 @@ import { cn } from "@/lib/utils/cn";
  * accessible name and a text summary, because a line somebody cannot see must
  * still tell them the p99 doubled.
  */
-export function MetricChart({
+/**
+ * ⚠ MEMOISED, AND THE REASON IS THE PANEL NEXT DOOR. `WhatChangedPanel` counts
+ * its p99 figure up with a requestAnimationFrame loop, so it re-renders about
+ * ninety times per twelve-second replay. Its props here never change during
+ * that — `series` is a module constant — so without `memo` this component
+ * reconciles ninety times to produce byte-identical SVG, forever, whether or
+ * not the panel is on screen.
+ */
+export const MetricChart = memo(function MetricChart({
   series, deployAt, height = 132, label, summary, unit = "ms", className, tone = "accent",
 }: {
   series: number[];
@@ -110,4 +118,4 @@ export function MetricChart({
       </figcaption>
     </figure>
   );
-}
+});

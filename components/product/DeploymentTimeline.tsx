@@ -21,9 +21,16 @@ export function DeploymentTimeline({ className }: { className?: string }) {
   return (
     <ol className={cn("relative m-0 list-none p-0", className)}>
       {/* The spine. `aria-hidden` because it is a visual join, not content. */}
-      <span
+            {/* ⚠ 5.25rem IS DERIVED, NOT EYEBALLED. The dot centres are at
+          w-16 (64px) + gap-4 (16px) + half of size-2 (4px) = 84px = 5.25rem.
+          This was 4.9rem — 5.6px left — and the ring-4 in --color-ink around
+          each dot painted over the spine either side of it, so the error was
+          hidden AT the dots and visible BETWEEN them. That reads as the dots
+          hanging off the line rather than the line being wrong. Recompute if
+          the time column width or the gap changes. */}
+<span
         aria-hidden
-        className="absolute bottom-3 left-[4.9rem] top-3 w-px bg-[color:var(--color-line)]"
+        className="absolute bottom-3 left-[5.25rem] top-3 w-px bg-[color:var(--color-line)]"
       />
       {timeline.map((e) => {
         const tone = TONE[e.kind];

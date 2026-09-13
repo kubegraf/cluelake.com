@@ -91,7 +91,7 @@ export function Hero() {
                 element because each one enters separately — and because a <br>
                 inside a heading is read aloud as a break by some screen
                 readers. The text still wraps normally inside either line. */}
-            <h1 className="mt-5 text-[clamp(2.5rem,7vw,4.6rem)] font-semibold tracking-[-0.036em]">
+            <h1 className="mt-5 text-[clamp(2rem,7vw,4.6rem)] font-semibold tracking-[-0.036em]">
               {/* ⚠ THE TRAILING SPACE IS LOAD-BEARING. Without it the lines
                   concatenate in the accessible name and the heading announces as
                   "Observe everything.Understand what changed." A `block`

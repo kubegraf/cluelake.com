@@ -17,10 +17,36 @@ const inter = Inter({
   display: "swap",
 });
 
+/**
+ * ⚠ `adjustFontFallback` IS OFF FOR THE MONO FACE, AND IT HAS TO BE.
+ *
+ * next/font's automatic fallback knows exactly two local fonts — Arial and
+ * Times New Roman — so it gave a MONOSPACE family a PROPORTIONAL stand-in:
+ *
+ *     @font-face{font-family:JetBrains Mono Fallback;src:local("Arial");
+ *       ascent-override:75.79%;descent-override:22.29%;size-adjust:134.59%}
+ *
+ * The overrides correct the VERTICAL metrics. Advance widths are not corrected
+ * and cannot be, because Arial is not fixed-advance. So during the swap window
+ * every mono string on the site is laid out at Arial widths scaled 134.59% and
+ * then reflows when the real face lands: the hero eyebrow, the trace line, the
+ * four proof chips, every chart figcaption and the whole product panel.
+ *
+ * The worst of it is `.cl-rotator`, which sizes its grid cell to its widest
+ * child — so the rotator's box is computed in fake-Arial and jumps. That is
+ * horizontal CLS on the one element whose stated design brief, in globals.css,
+ * is that the sentence never reflows as it cycles.
+ *
+ * An explicit monospace stack is a better stand-in than a corrected Arial: the
+ * metrics are not identical either, but every font in it is fixed-advance, so
+ * the failure is a slightly different glyph width rather than a reflow.
+ */
 const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono-jb",
   display: "swap",
+  adjustFontFallback: false,
+  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
 });
 
 export const metadata: Metadata = {
