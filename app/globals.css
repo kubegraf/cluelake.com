@@ -21,7 +21,18 @@
   /* ── Type ───────────────────────────────────────────────────────────── */
   --color-fg: #e8edf3;
   --color-fg-muted: #9aa7b6;
-  --color-fg-subtle: #6b7888;
+  /* ⚠ 4.5:1 IS A FLOOR THIS TOKEN KEPT MISSING. It was #6b7888, which is
+     4.21:1 on --color-surface and 4.38:1 on --color-ink — under the WCAG AA
+     body-text threshold on both. That matters here more than it would
+     elsewhere, because this token is the site's SMALL text: the hero eyebrow
+     at 11px, the proof chips at 11.5px, the trace line at 13px, every chart
+     figcaption and every label in the product panel. None of it is "large
+     text", so none of it gets the 3:1 allowance.
+
+     #707e8f is the smallest step that clears 4.5 on BOTH backgrounds
+     (4.57 and 4.76). Computed, not eyeballed — nudging this toward a rounder
+     number puts it back under the line. */
+  --color-fg-subtle: #707e8f;
 
   /* ── Accent, from the mark ──────────────────────────────────────────── */
   --color-accent: #4fb3d1;
@@ -61,7 +72,10 @@
   --color-line-strong: #cbd5e0;
   --color-fg: #0b1017;
   --color-fg-muted: #4a5565;
-  --color-fg-subtle: #6b7888;
+  /* Same floor, other direction. On white #6b7888 lands on exactly 4.50 —
+     technically the threshold, with no margin for a rounding difference
+     between checkers. #687585 is 4.70. */
+  --color-fg-subtle: #687585;
   --color-accent: #0a5b82;
   --color-accent-hover: #084963;
   --color-accent-wash: rgba(10, 91, 130, 0.08);
