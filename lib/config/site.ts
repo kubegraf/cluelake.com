@@ -9,8 +9,12 @@
 export const site = {
   name: "ClueLake",
   tagline: "Know what changed.",
+  /** ⚠ THIS IS THE META DESCRIPTION AND BOTH SOCIAL CARDS. It is the hero's
+   *  lede, kept in step with it deliberately: when the hero was rewritten this
+   *  was left behind, so Google and every Slack unfurl went on describing the
+   *  product in copy the site no longer used. If the lede changes, change this. */
   description:
-    "ClueLake connects logs, metrics, traces and Kubernetes context so teams can move from production regressions to the changes that caused them.",
+    "ClueLake connects logs, metrics, traces and Kubernetes deployments so you can monitor your systems, investigate performance changes, and trace regressions back to the deployment, image, build or commit behind them.",
   /** Set NEXT_PUBLIC_SITE_URL in every environment. The fallback is the
    *  production hostname so a misconfigured preview is obvious, not silent. */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://cluelake.com",
