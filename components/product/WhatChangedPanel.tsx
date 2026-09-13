@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Layers, Package, Play } from "lucide-react";
+import { ArrowRight, GitCommit, Layers, Package, Play } from "lucide-react";
 import { Frame } from "./Frame";
 import { MetricChart } from "./MetricChart";
 import { scenario, p99Series, DEPLOY_INDEX, INCIDENT_AT, DEPLOY_AT } from "@/lib/demo/data";
@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils/cn";
  * there is no pretend endpoint behind it. See that module's header.
  */
 
-type Row = { key: "image" | "build"; icon: typeof Package; label: string; value: string; detail: string };
+type Row = { key: "image" | "build" | "commit"; icon: typeof Package; label: string; value: string; detail: string };
 
 const ROWS: Row[] = [
   {
@@ -41,6 +41,18 @@ const ROWS: Row[] = [
     label: "build",
     value: scenario.build,
     detail: "Built from main. The build that produced this image, with its logs and the artifacts it published.",
+  },
+  // ⚠ RESTORED. This row was removed, then put back when the hero lede was
+  // rewritten to promise tracing a regression "back to the deployment, image,
+  // build, or commit behind them". Four nouns in the sentence, and the panel
+  // sitting beside it is where a reader checks them. Removing it again means
+  // editing that sentence in the same change.
+  {
+    key: "commit",
+    icon: GitCommit,
+    label: "commit",
+    value: `${scenario.commit} — ${scenario.commitMessage}`,
+    detail: `Authored by ${scenario.actor}. One commit in this build touched the payments client.`,
   },
 ];
 

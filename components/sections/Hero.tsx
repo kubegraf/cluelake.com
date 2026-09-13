@@ -43,7 +43,12 @@ const delay = (d: string): CSSProperties => ({ ["--d" as string]: d });
 const PROOF = [
   "Kubernetes-native",
   "OpenTelemetry-native",
-  "PromQL compatible",
+  // ⚠ HEDGED ON PURPOSE, and the hedge is the site's. features, architecture,
+  // pricing and QuerySection all say "PromQL for the supported query set"
+  // rather than plain compatibility. A chip that drops the qualifier makes the
+  // hero the one place on the site overclaiming — against this list's own rule
+  // two lines up.
+  "PromQL for supported queries",
   "eBPF visibility",
 ];
 
