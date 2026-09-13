@@ -7,7 +7,11 @@ import { site } from "@/lib/config/site";
 
 export const metadata: Metadata = pageMetadata({
   title: "Terms",
-  description: "Terms for ClueLake, a product of ${site.company}.",
+  // ⚠ BACKTICKS. This was a double-quoted string, so `${site.company}` was
+  // never interpolated and the literal text shipped in the meta description,
+  // the og:description and the Twitter card — on one of the two pages a
+  // procurement reviewer actually opens, and it is what Google indexed.
+  description: `Terms for ClueLake, a product of ${site.company}.`,
   path: "/legal/terms",
 });
 

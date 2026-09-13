@@ -7,7 +7,7 @@ import { pageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = pageMetadata({
   title: "Company",
-  description: `ClueLake is a product of ${site.company} — observability for Kubernetes and cloud infrastructure.`,
+  description: `ClueLake is a product of ${site.company} — deployment-aware observability for Kubernetes.`,
   path: "/company",
 });
 

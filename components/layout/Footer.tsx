@@ -11,7 +11,7 @@ export function Footer() {
           <div className="min-w-[15rem] max-w-[19rem]">
             <Logo size={18} />
             <p className="mt-3.5 text-[13.5px] leading-relaxed text-[color:var(--color-fg-subtle)]">
-              Observability for Kubernetes and cloud infrastructure.
+              Deployment-aware observability for Kubernetes.
             </p>
           </div>
 

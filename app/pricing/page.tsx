@@ -15,7 +15,7 @@ export const metadata: Metadata = pageMetadata({
 const FAQ = [
   { q: "Why usage-based rather than per host?", a: "Per-host pricing charges the same for a quiet service and a noisy one, and it stops reflecting cost as soon as workloads are packed densely. Metering what actually costs us money — bytes accepted, bytes retained, series held — is the only model where the bill is predictable from what you send." },
   { q: "What stops a bad deploy producing a large bill?", a: "Cardinality budgets and attribute policy are enforced as data arrives, not reconciled afterwards. An over-budget series is refused by name and surfaced in the portal, so the first place you hear about a runaway label is the product rather than the invoice." },
-  { q: "Are queries billed?", a: "Query usage is metered, and every query is costed before it runs. An expensive query is refused with its estimate and a narrower suggestion rather than executed and charged for." },
+  { q: "Are queries billed?", a: "Query usage is metered, and every query is costed before it runs. An expensive query is refused with its estimate rather than executed and charged for." },
   { q: "Can I keep my existing tooling?", a: "Yes. ClueLake ingests OpenTelemetry and speaks PromQL for the supported query set, so existing dashboards and alert rules can keep working while telemetry lands here." },
 ];
 

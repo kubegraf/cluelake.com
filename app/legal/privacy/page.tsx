@@ -7,7 +7,11 @@ import { site } from "@/lib/config/site";
 
 export const metadata: Metadata = pageMetadata({
   title: "Privacy",
-  description: "Privacy for ClueLake, a product of ${site.company}.",
+  // ⚠ BACKTICKS. This was a double-quoted string, so `${site.company}` was
+  // never interpolated and the literal text shipped in the meta description,
+  // the og:description and the Twitter card — on one of the two pages a
+  // procurement reviewer actually opens, and it is what Google indexed.
+  description: `Privacy for ClueLake, a product of ${site.company}.`,
   path: "/legal/privacy",
 });
 
@@ -25,7 +29,7 @@ export default function PrivacyPage() {
         <div className="max-w-[44rem] rounded-xl border border-[color:var(--color-line)] p-6">
           <p className="text-[14px] leading-relaxed text-[color:var(--color-fg-muted)]">
             ClueLake is a product of {site.company} and is in development. Our Privacy
-            {" "}will be published here before the product is generally available.
+            {" "}Policy will be published here before the product is generally available.
           </p>
           <p className="mt-4 text-[14px] leading-relaxed text-[color:var(--color-fg-muted)]">
             If you need this document as part of an evaluation,{" "}
