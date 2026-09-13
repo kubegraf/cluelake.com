@@ -187,6 +187,77 @@ input[type="range"] {
    frame. Fade everything that is not the headline. */
 .cl-settle { animation: cl-settle 760ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0ms); }
 
+/* ── The rotating noun ────────────────────────────────────────────────────
+   "Trace a regression back to the deployment / image / build / commit." The
+   four words the hero's lede names, and the same three the product panel
+   lists, cycling in the place the sentence points at.
+
+   ⚠ STACKED IN ONE GRID CELL, NOT ABSOLUTELY POSITIONED. Every word is placed
+   in `grid-area: 1/1`, so the box is automatically as wide as the LONGEST word
+   and the sentence never reflows as it cycles. Absolute positioning would
+   collapse the box to zero width and drag the full stop across the line on
+   every step.
+
+   ⚠ IT IS CSS, SO IT IS STILL A SERVER COMPONENT. No hydration, no library,
+   and it runs with JavaScript off — the same rule the rest of this hero
+   follows. */
+.cl-rotator { display: inline-grid; vertical-align: bottom; }
+.cl-rotator > span {
+  grid-area: 1 / 1;
+  position: relative;
+  white-space: nowrap;
+  animation: cl-rotate-word var(--cycle, 10.4s) cubic-bezier(0.16, 1, 0.3, 1) infinite both;
+  animation-delay: calc(var(--i, 0) * var(--cycle, 10.4s) / 4);
+}
+
+/* The rule under the live word, redrawn on every step. Same accent and the
+   same easing as the underline on the headline and the metric line in the
+   panel — three places, one gesture. */
+.cl-rotator > span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.09em;
+  height: 0.075em;
+  border-radius: 999px;
+  background: var(--color-accent);
+  transform-origin: left;
+  animation: cl-rotate-rule var(--cycle, 10.4s) cubic-bezier(0.16, 1, 0.3, 1) infinite both;
+  animation-delay: calc(var(--i, 0) * var(--cycle, 10.4s) / 4);
+}
+
+@keyframes cl-rotate-word {
+  0%        { opacity: 0; transform: translateY(0.4em); }
+  2%, 21%   { opacity: 1; transform: none; }
+  25%, 100% { opacity: 0; transform: translateY(-0.4em); }
+}
+
+@keyframes cl-rotate-rule {
+  0%, 2%    { transform: scaleX(0); }
+  9%, 21%   { transform: scaleX(1); }
+  25%, 100% { transform: scaleX(0); }
+}
+
+/* ⚠ THIS OVERRIDE IS LOAD-BEARING, AND IT MUST STAY AFTER THE GLOBAL ONE.
+   The reduced-motion rule near the top of this file sets
+   `animation-iteration-count: 1 !important` and a 0.01ms duration on every
+   element. An INFINITE animation under that rule does not stop mid-cycle — it
+   runs once, instantly, and lands on its final keyframe. This one's final
+   keyframe is `opacity: 0`, so all four words would settle invisible and the
+   sentence would read "Trace a regression back to the ." with a hole in it.
+
+   That is the exact failure the comment on the global rule forbids: it removes
+   the movement and never the content. So the animation is cancelled outright
+   here and the first word is pinned visible, with its rule drawn. */
+@media (prefers-reduced-motion: reduce) {
+  .cl-rotator > span,
+  .cl-rotator > span::after { animation: none !important; }
+  .cl-rotator > span { opacity: 0; transform: none; }
+  .cl-rotator > span:first-child { opacity: 1; }
+  .cl-rotator > span:first-child::after { transform: scaleX(1); }
+}
+
 /* The ambient wash behind the hero: two soft radial pools in the mark's own
    hue, drifting slowly enough to read as depth rather than as movement.
    ⚠ ONE COMPOSITED ELEMENT, NOT A PARTICLE FIELD — it animates `transform`
