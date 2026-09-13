@@ -90,22 +90,67 @@ jobs:
         run: |
           set -euo pipefail
           TAG="sha-$(git rev-parse --short HEAD)"
-          docker buildx build \
-            --platform linux/amd64 \
-            --build-arg NEXT_PUBLIC_SITE_URL="https://cluelake.com" \
-            --tag "${REGISTRY}/${ECR_REPO}:${TAG}" \
-            --push \
-            --provenance=false \
-            .
-          # ⚠ THE DIGEST IS READ BACK FROM THE REGISTRY, not taken from the
-          # build output. It is what the Deployment pins, so it has to be the
-          # digest ECR actually stored.
-          DIGEST="$(aws ecr describe-images --repository-name "${ECR_REPO}" \
-                      --image-ids imageTag="${TAG}" \
-                      --query 'imageDetails[0].imageDigest' --output text)"
+
+          # ⚠ THE TAG MAY ALREADY EXIST, AND THAT IS NOT AN ERROR.
+          #
+          # The tag is the commit sha and the ECR repository is IMMUTABLE, so
+          # pushing a tag that is already there fails outright rather than
+          # succeeding as a no-op:
+          #
+          #   ERROR: failed to push …/cluelake-site:sha-97b4be6: unknown:
+          #   The image tag 'sha-97b4be6' already exists … and cannot be
+          #   overwritten because the tag is immutable.
+          #
+          # That is what happens on any `workflow_dispatch` re-run of a commit
+          # that already deployed, which is exactly when somebody is re-running
+          # it: to put a known-good build back on the cluster. The build is
+          # fine, the image is fine, and the deploy died before it applied
+          # anything.
+          #
+          # So the existence of the tag is treated as what it is — this commit
+          # is already built — and the run goes straight to the rollout. The
+          # image is NOT rebuilt: under an immutable sha tag the stored image IS
+          # the artifact for this commit, and there is no way to replace it that
+          # is not a lie about what that sha means.
+          #
+          # The consequence worth knowing: a re-run will NOT pick up a changed
+          # base image or Dockerfile for the same commit sha. Push a commit for
+          # that. Immutability is the reason the digest below can be trusted.
+          existing_digest() {
+            aws ecr describe-images --repository-name "${ECR_REPO}" \
+              --image-ids imageTag="${TAG}" \
+              --query 'imageDetails[0].imageDigest' --output text 2>/dev/null || true
+          }
+
+          DIGEST="$(existing_digest)"
+          if [ -n "${DIGEST}" ] && [ "${DIGEST}" != "None" ]; then
+            echo "${TAG} is already in ${ECR_REPO} (${DIGEST}) — skipping the build and deploying it."
+          else
+            docker buildx build \
+              --platform linux/amd64 \
+              --build-arg NEXT_PUBLIC_SITE_URL="https://cluelake.com" \
+              --tag "${REGISTRY}/${ECR_REPO}:${TAG}" \
+              --push \
+              --provenance=false \
+              .
+            # ⚠ THE DIGEST IS READ BACK FROM THE REGISTRY, not taken from the
+            # build output. It is what the Deployment pins, so it has to be the
+            # digest ECR actually stored.
+            DIGEST="$(existing_digest)"
+            echo "Pushed ${TAG} -> ${DIGEST}"
+          fi
+
+          # Either branch must end with a real digest. An empty or "None" one
+          # here would otherwise be pinned into the Deployment as a malformed
+          # image reference, and the failure would surface as a pull error on
+          # the cluster rather than here.
+          if [ -z "${DIGEST}" ] || [ "${DIGEST}" = "None" ]; then
+            echo "::error::${TAG} has no digest in ${ECR_REPO} after build/lookup — refusing to deploy."
+            exit 1
+          fi
+
           echo "tag=${TAG}"       >> "$GITHUB_OUTPUT"
           echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
-          echo "Pushed ${TAG} -> ${DIGEST}"
 
       - name: Point kubectl at the cluster
         run: aws eks update-kubeconfig --name "${CLUSTER_NAME}" --region "${AWS_REGION}"
