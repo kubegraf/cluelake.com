@@ -18,7 +18,22 @@ export const site = {
   /** Set NEXT_PUBLIC_SITE_URL in every environment. The fallback is the
    *  production hostname so a misconfigured preview is obvious, not silent. */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://cluelake.com",
-  company: "Orkastor Ltd",
+  /**
+   * ⚠ THE LEGAL ENTITY NAME, AND THE ONLY PLACE IT IS WRITTEN. The footer, the
+   * /company page, the privacy and terms pages, the `authors` meta tag and the
+   * Organization in the page's structured data all read this. Nothing renders
+   * the name as a literal, so this is the one line to change if the entity
+   * changes again.
+   *
+   * Spelled as the entity is registered. Do not restyle it to "Pragenx AI Ltd"
+   * or any other variant — it appears in a copyright line and a licence.
+   *
+   * ⚠ It is NOT related to the `orkastor-*` names elsewhere in this estate. The
+   * EKS cluster, the Karpenter node pools, the S3 buckets and the npm packages
+   * share the word and are live infrastructure. Renaming any of those breaks
+   * production; renaming this one does not touch them.
+   */
+  company: "PRAGENX AI LIMITED",
   /**
    * The Console, a SEPARATE application on its own hostname — `apps/cluelake` in
    * the kubegraf.io monorepo, deployed to Vercel. This site never renders a

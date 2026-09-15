@@ -2,7 +2,7 @@
 
 The ClueLake website. Next.js 15 (App Router), TypeScript, Tailwind CSS 4.
 
-ClueLake is a Kubernetes observability platform, and a product of Orkastor Ltd.
+ClueLake is a Kubernetes observability platform, and a product of PRAGENX AI LIMITED.
 
 ## Run it
 
