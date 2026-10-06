@@ -28,7 +28,7 @@ metadata:
   labels:
     app.kubernetes.io/name: cluelake-site
 spec:
-  replicas: 2 # two, so a node roll does not take the page down
+  # No replicas: the HorizontalPodAutoscaler below owns it (min 1, max 3).
   selector:
     matchLabels:
       app.kubernetes.io/name: cluelake-site
@@ -103,9 +103,34 @@ metadata:
   name: cluelake-site
   namespace: cluelake-site
 spec:
-  # One pod must stay up through a voluntary disruption. With replicas: 2 this
-  # makes a node drain roll the pods rather than take both at once.
-  minAvailable: 1
+  # The site runs one pod when idle (see the HorizontalPodAutoscaler below).
+  # minAvailable: 1 would then block every node drain and every consolidation
+  # of that pod, so one pod may be moved at a time. A node roll costs a few
+  # seconds of the page, which is the trade made for running one replica.
+  maxUnavailable: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: cluelake-site
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cluelake-site
+  namespace: cluelake-site
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cluelake-site
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
