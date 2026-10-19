@@ -4,7 +4,7 @@ const LAYERS = [
   { label: "Kubernetes workloads", note: "your clusters" },
   { label: "OpenTelemetry · eBPF · Hubble", note: "collection" },
   { label: "ClueLake ingest", note: "auth, tenancy" },
-  { label: "Policy · sampling · enrichment", note: "cardinality, redaction, deployment context" },
+  { label: "Policy · enrichment", note: "cardinality, redaction, deployment context" },
   { label: "ClickHouse", note: "columnar storage" },
   { label: "Query · correlation", note: "PromQL, logs, traces, SQL" },
   { label: "ClueLake portal", note: "investigation" },
@@ -16,7 +16,7 @@ export function Platform() {
       <SectionHeading
         eyebrow="Architecture"
         title="OpenTelemetry in. Your telemetry stays yours."
-        lede="ClueLake is designed to fit the tooling you already use. Telemetry arrives over OTLP, and leaves through query APIs and exports — structured, and readable by things that are not ours."
+        lede="ClueLake is designed to fit the tooling you already use. Telemetry arrives over OTLP and leaves through query APIs, structured and readable by things that are not ours."
       />
 
       <ol className="mt-10 grid list-none gap-2 p-0">
@@ -46,9 +46,8 @@ export function Platform() {
         <div className="rounded-xl border border-[color:var(--color-line)] p-5">
           <h3 className="text-[14.5px] font-semibold">Your telemetry should not become a hostage.</h3>
           <p className="mt-2 text-[13.5px] leading-relaxed text-[color:var(--color-fg-muted)]">
-            OpenTelemetry in, query APIs and exports out, and a documented storage model. Cold
-            storage is designed around open columnar formats so the data stays readable outside
-            ClueLake.
+            OpenTelemetry in, query APIs out, and a documented storage model. Self-hosted, the
+            data sits in your own ClickHouse.
           </p>
         </div>
       </div>

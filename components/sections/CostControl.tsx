@@ -4,10 +4,9 @@ import { Section, SectionHeading } from "@/components/ui/Section";
 const CAPABILITIES = [
   { title: "Cardinality", body: "Keep runaway series under control. Budgets are enforced as data arrives, and an over-budget series is refused by name rather than dropped quietly." },
   { title: "Attributes", body: "Define which dimensions belong in your telemetry. Allow lists, deny lists and redaction are applied at ingest, before anything is stored." },
-  { title: "Tail sampling", body: "Keep errors and slow traces while reducing routine volume. Control how telemetry is sampled rather than discovering it after the fact." },
 ];
 
-const FLOW = ["Raw telemetry", "Policy", "Accepted / sampled", "Stored"];
+const FLOW = ["Raw telemetry", "Policy", "Accepted", "Stored"];
 
 export function CostControl() {
   return (
@@ -31,7 +30,7 @@ export function CostControl() {
         ))}
       </ol>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {CAPABILITIES.map((c) => (
           <div key={c.title} className="rounded-xl border border-[color:var(--color-line)] p-5">
             <h3 className="font-mono text-[11.5px] uppercase tracking-[0.14em] text-[color:var(--color-accent)]">

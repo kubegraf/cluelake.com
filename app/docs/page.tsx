@@ -7,7 +7,7 @@ import { pageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = pageMetadata({
   title: "Documentation",
-  description: "ClueLake documentation: getting started, Kubernetes, OpenTelemetry, querying, deployments, alerts, SLOs and the API.",
+  description: "ClueLake documentation: getting started, Kubernetes, OpenTelemetry, querying, deployments, alerts and the API.",
   path: "/docs",
 });
 
@@ -18,7 +18,7 @@ const CATEGORIES = [
   { group: "Start", items: ["Getting started", "Kubernetes", "OpenTelemetry"] },
   { group: "Signals", items: ["Logs", "Metrics", "Traces", "eBPF"] },
   { group: "Query", items: ["PromQL", "SQL"] },
-  { group: "Operate", items: ["Deployments", "Alerts", "SLOs", "Retention"] },
+  { group: "Operate", items: ["Deployments", "Alerts", "Retention"] },
   { group: "Platform", items: ["API", "Security", "Architecture", "Troubleshooting"] },
 ];
 
@@ -58,7 +58,7 @@ export default function DocsPage() {
           <div className="min-w-0">
             <h2 className="text-[22px] font-semibold">Send your first telemetry</h2>
             <p className="mt-2 max-w-[46rem] text-[14px] leading-relaxed text-[color:var(--color-fg-muted)]">
-              ClueLake accepts OpenTelemetry over OTLP. If you already run an OpenTelemetry
+              ClueLake accepts OpenTelemetry over OTLP/HTTP. If you already run an OpenTelemetry
               Collector, adding an exporter is the whole integration.
             </p>
 

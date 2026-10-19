@@ -7,7 +7,7 @@ const PRINCIPLES = [
   { title: "Encrypted connections", body: "TLS in transit throughout, with private networking between the control plane and its databases." },
   { title: "Role-based permissions", body: "Owner, admin, member and viewer roles across organisations and workspaces." },
   { title: "Audit logging", body: "Sign-in, credential and configuration changes are recorded append-only, enforced by the database rather than by application code." },
-  { title: "Configurable retention", body: "Retention is policy, set per environment, and applied by the storage engine." },
+  { title: "Retention by the storage engine", body: "Retention is applied by the storage engine itself. Logs and traces are kept 30 days and metrics 400 days." },
   { title: "Redaction policies", body: "Deterministic attribute allow and deny lists, applied before storage. Sensitive headers are removed rather than the event being discarded." },
 ];
 

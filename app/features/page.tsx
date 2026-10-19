@@ -7,7 +7,7 @@ import { pageMetadata } from "@/lib/seo/metadata";
 export const metadata: Metadata = pageMetadata({
   title: "Features",
   description:
-    "Logs, metrics, traces, Kubernetes and eBPF visibility, deployment correlation, cost control, querying, alerts and SLOs.",
+    "Logs, metrics, traces, Kubernetes and eBPF visibility, deployment correlation, cost control, querying and alerts.",
   path: "/features",
 });
 
@@ -39,7 +39,6 @@ const GROUPS: Array<{ title: string; items: Array<{ name: string; body: string }
     items: [
       { name: "Cardinality budgets", body: "Per-workspace limits on active series, enforced at ingest and reported by name when exceeded." },
       { name: "Attribute policy", body: "Allow lists, deny lists and redaction applied before storage." },
-      { name: "Tail sampling", body: "Keep errors and slow traces while reducing routine volume." },
     ],
   },
   {
@@ -52,8 +51,7 @@ const GROUPS: Array<{ title: string; items: Array<{ name: string; body: string }
   {
     title: "Operations",
     items: [
-      { name: "Alerts", body: "Threshold, PromQL, log pattern and burn-rate alerts, with stored state rather than state recomputed each evaluation." },
-      { name: "SLOs", body: "Objectives, error budgets and burn rate." },
+      { name: "Alerts", body: "Threshold rules over metrics, logs and traces, with stored state rather than state recomputed each evaluation. Notifications go to Slack, PagerDuty, email and webhooks." },
       { name: "Audit", body: "Append-only records of sign-in, credential and configuration changes." },
     ],
   },
