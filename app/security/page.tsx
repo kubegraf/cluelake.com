@@ -18,8 +18,8 @@ const DETAIL = [
   { title: "API security", body: "Rate limits per organisation, workspace and key. SQL is read-only and validated by a parser rather than by string matching." },
   { title: "Secrets", body: "Held in a managed secret store and injected at runtime. Nothing sensitive is committed, logged, or placed in a URL." },
   { title: "Audit logs", body: "Append-only, enforced by database triggers rather than by application code, so the record survives a compromised service account." },
-  { title: "Retention", body: "Configurable per environment and applied by the storage engine, so deletion is a property of the data rather than a job that might not run." },
-  { title: "Data residency", body: "Workspaces carry a region. Telemetry is not moved between regions implicitly." },
+  { title: "Retention", body: "Applied by the storage engine, so deletion is a property of the data rather than a job that might not run. Logs and traces are kept 30 days and metrics 400 days." },
+  { title: "Data residency", body: "The hosted service runs in one AWS region today, eu-north-1 (Stockholm). Self-hosted keeps all telemetry in your own cluster." },
   { title: "Infrastructure", body: "Least-privilege IAM, network policy between components, non-root containers and read-only root filesystems where practical." },
 ];
 

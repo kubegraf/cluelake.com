@@ -16,7 +16,7 @@ import { Section, SectionHeading } from "@/components/ui/Section";
  */
 const METERS = [
   { id: "ingest", name: "Ingest", unit: "per GiB accepted", body: "Measured on what is accepted after policy, so data refused by a cardinality budget or an attribute deny list is never billed." },
-  { id: "retention", name: "Retention", unit: "per GiB-day", body: "Storage is rent rather than a purchase. Retention is set per environment, so staging need not be kept as long as production." },
+  { id: "retention", name: "Retention", unit: "per GiB-day", body: "Storage is rent rather than a purchase. Logs and traces are kept 30 days and metrics 400 days today." },
   { id: "series", name: "Active series", unit: "per 1k series", body: "The cost a bytes meter cannot see: cardinality consumes index and memory rather than volume." },
   { id: "query", name: "Query", unit: "per GiB scanned", body: "Costed before execution, so an expensive query is a decision rather than a surprise." },
 ];
